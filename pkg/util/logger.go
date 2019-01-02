@@ -1,4 +1,4 @@
-package jnet
+package util
 
 import "fmt"
 
@@ -16,6 +16,6 @@ func NewLogger(name string, padding int) (nl *Logger) {
 	}
 }
 
-func (l Logger) Log(v interface{}) () {
+func (l Logger) Log(v interface{}) {
 	fmt.Printf(fmt.Sprintf("%%%vv: %%#v\n", l.Padding), l.Name, v)
 }

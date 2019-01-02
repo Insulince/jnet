@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"jnet"
+	"jnet/pkg/layer"
+	"jnet/pkg/network"
 )
 
 // This network is an example that was constructed based on Brandon Rohrer's excellent talk
@@ -34,13 +35,13 @@ import (
 //
 // This network comes PRE-TRAINED. It does not use any data science or calculus to create its determinations.
 // This is just an exercise in the machinery behind neural networks.
-func main() () {
+func main() {
 	inputs := [4]float64{-1, 1, 1, -1}
 
-	nw := jnet.NewNetwork()
+	nw := network.NewNetwork()
 
 	// Input Layer
-	il := *jnet.NewNilLayer(4)
+	il := *layer.NewNilLayer(4)
 	il[0].Value = inputs[0]
 	il[1].Value = inputs[1]
 	il[2].Value = inputs[2]
@@ -48,7 +49,7 @@ func main() () {
 	nw.CreateConnections(il)
 
 	// Hidden Layer 1
-	hl1 := *jnet.NewSigmoidLayer(4)
+	hl1 := *layer.NewSigmoidLayer(4)
 	nw.CreateConnections(hl1).
 		SetConnectionWeight(0, 0, 1).
 		SetConnectionWeight(0, 2, 1).
@@ -60,7 +61,7 @@ func main() () {
 		SetConnectionWeight(3, 2, -1)
 
 	// Hidden Layer 2
-	hl2 := *jnet.NewSigmoidLayer(4)
+	hl2 := *layer.NewSigmoidLayer(4)
 	nw.CreateConnections(hl2).
 		SetConnectionWeight(0, 0, 1).
 		SetConnectionWeight(0, 1, -1).
@@ -72,7 +73,7 @@ func main() () {
 		SetConnectionWeight(3, 3, 1)
 
 	// Hidden Layer 3
-	hl3 := *jnet.NewRectifiedLinearUnitLayer(8)
+	hl3 := *layer.NewRectifiedLinearUnitLayer(8)
 	nw.CreateConnections(hl3).
 		SetConnectionWeight(0, 0, 1).
 		SetConnectionWeight(0, 1, -1).
@@ -84,7 +85,7 @@ func main() () {
 		SetConnectionWeight(3, 7, -1)
 
 	// Output Layer
-	ol := *jnet.NewPositiveBinaryLayer(4)
+	ol := *layer.NewPositiveBinaryLayer(4)
 	nw.CreateConnections(ol).
 		SetOutputNeuronResult(0, "Solid").
 		SetOutputNeuronResult(1, "Vertical").

@@ -1,10 +1,14 @@
-package jnet
+package neuron
 
-import "math"
+import (
+	"jnet/pkg/connection"
+	"jnet/pkg/util"
+	"math"
+)
 
 type Neuron struct {
-	*Logger
-	Connections []Connection
+	*util.Logger
+	Connections []connection.Connection
 	Value       float64
 	Result      string
 	Transform   NeuralTransformer
@@ -14,7 +18,7 @@ type NeuralConstructor func() (nn *Neuron)
 
 func newNeuron(nt NeuralTransformer) (nn *Neuron) {
 	return &Neuron{
-		Logger:    NewLogger("Neuron", DefaultPadding),
+		Logger:    util.NewLogger("Neuron", util.DefaultPadding),
 		Transform: nt,
 	}
 }

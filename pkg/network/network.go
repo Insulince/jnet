@@ -1,18 +1,24 @@
-package jnet
+package network
+
+import (
+	"jnet/pkg/connection"
+	"jnet/pkg/layer"
+	"jnet/pkg/util"
+)
 
 type Network struct {
-	*Logger
-	Layers []Layer
+	*util.Logger
+	Layers []layer.Layer
 }
 
 func NewNetwork() (nnw *Network) {
 	return &Network{
-		Logger: NewLogger("Network", DefaultPadding),
-		Layers: []Layer{},
+		Logger: util.NewLogger("Network", util.DefaultPadding),
+		Layers: []layer.Layer{},
 	}
 }
 
-func (nw *Network) CreateConnections(l Layer) (this *Network) {
+func (nw *Network) CreateConnections(l layer.Layer) (this *Network) {
 	pli := len(nw.Layers) - 1
 
 	if pli > -1 {
@@ -25,7 +31,7 @@ func (nw *Network) CreateConnections(l Layer) (this *Network) {
 			// For every neuron in the current layer...
 			for ni := 0; ni < len(l); ni++ {
 				// Append the current neuron as a connection to the previous neuron with weight 0.
-				pn.Connections = append(pn.Connections, *NewConnection())
+				pn.Connections = append(pn.Connections, *connection.NewConnection())
 			}
 		}
 	}
@@ -117,6 +123,6 @@ func (nw *Network) Process() (result string) {
 	return result
 }
 
-func (nw *Network) getConnection(li int, ni int, ci int) (c *Connection) {
+func (nw *Network) getConnection(li int, ni int, ci int) (c *connection.Connection) {
 	return &nw.Layers[li][ni].Connections[ci]
 }
