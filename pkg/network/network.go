@@ -11,122 +11,47 @@ type Network struct {
 	Layers []layer.Layer
 }
 
-func New() (nnw *Network) {
+func New(ls []layer.Layer) (nnw *Network) {
 	return &Network{
 		Logger: util.NewLogger("Network", util.DefaultPadding),
-		Layers: []layer.Layer{},
+		Layers: ls,
 	}
 }
 
-func (nw *Network) AddLayer(l *layer.Layer) (this *Network) {
-	pli := len(nw.Layers) - 1
+func (nw *Network) Connect(cms []connection.Map) (this *Network) {
+	if len(nw.Layers) != len(cms)+1 {
+		panic("Different number of layers than connection maps!")
+	}
 
-	if pli > -1 {
-		pl := &nw.Layers[pli]
+	for li := 0; li < len(nw.Layers)-1; li++ {
+		cl := nw.Layers[li]
+		nl := nw.Layers[li+1]
 
-		// For every neuron in the previous layer...
-		for pni := 0; pni < len(*pl); pni++ {
-			pn := &(*pl)[pni]
+		// For every neuron in the current layer...
+		for clni := 0; clni < len(cl); clni++ {
+			cln := &cl[clni]
 
-			// For every neuron in the current layer...
-			for ni := 0; ni < len(*l); ni++ {
-				// Append the current neuron as a connection to the previous neuron with weight 0.
-				pn.Connections = append(pn.Connections, *connection.New())
+			// For every neuron in the next layer...
+			for nlni := 0; nlni < len(nl); nlni++ {
+				// Create a connection from the current current layer neuron to the current next layer neuron with weight 0.
+				cln.Connections = append(cln.Connections, connection.Connection{float64(clni), float64(nlni), 0})
 			}
 		}
 	}
 
-	nw.Layers = append(nw.Layers, *l)
+	for cmsi := 0; cmsi < len(cms); cmsi++ {
+		cm := cms[cmsi]
 
-	return nw
-}
+		for ci := 0; ci < len(cm); ci++ {
+			c := cm[ci]
 
-func (nw *Network) SetInputNeuronValues(values []float64) (this *Network) {
-	cli := len(nw.Layers) - 1
-	if cli != 0 {
-		panic("Trying to set the input value of a non-input layer!")
+			ni := c[connection.IndexFrom]
+			ci := c[connection.IndexTo]
+			w := c[connection.IndexWeight]
+
+			nw.Layers[cmsi][(int)(ni)].Connections[(int)(ci)][connection.IndexWeight] = w
+		}
 	}
-
-	if len(nw.Layers[cli]) != len(values) {
-		panic("Invalid number of inputs provided, does no match number of input neurons.")
-	}
-
-	for ni := 0; ni < len(nw.Layers[cli]); ni++ {
-		nw.SetInputNeuronValue(ni, values[ni])
-	}
-
-	return nw
-}
-
-func (nw *Network) SetInputNeuronValue(ni int, v float64) (this *Network) {
-	cli := len(nw.Layers) - 1
-	if cli != 0 {
-		panic("Trying to set the input value of a non-input layer!")
-	}
-	nw.Layers[cli][ni].Value = v
-
-	return nw
-}
-
-func (nw *Network) SetConnectionWeights(cmc connection.MapCollection) (this *Network) {
-	pli := len(nw.Layers) - 2
-	if pli < 0 {
-		panic("Trying to set a connection weight on a layer which contains no connections!")
-	}
-
-	for _, cm := range cmc {
-		c := nw.getConnection(pli, (int)(cm[0]), (int)(cm[1]))
-		c.Weight = cm[2]
-	}
-
-	return nw
-}
-
-func (nw *Network) SetConnectionWeight(cm connection.Map) (this *Network) {
-	pli := len(nw.Layers) - 2
-	if pli < 0 {
-		panic("Trying to set a connection weight on a layer which contains no connections!")
-	}
-	c := nw.getConnection(pli, (int)(cm[0]), (int)(cm[1]))
-	c.Weight = cm[2]
-
-	return nw
-}
-
-func (nw *Network) SetConnectionWeightManually(pni int, pnci int, w float64) (this *Network) {
-	pli := len(nw.Layers) - 2
-	if pli < 0 {
-		panic("Trying to set a connection weight on a layer which contains no connections!")
-	}
-	c := nw.getConnection(pli, pni, pnci)
-	c.Weight = w
-
-	return nw
-}
-
-func (nw *Network) SetOutputNeuronResults(outputs []string) (this *Network) {
-	cli := len(nw.Layers) - 1
-	if cli < 0 {
-		panic("Trying to set the output result of a non-output layer!")
-	}
-
-	if len(nw.Layers[cli]) != len(outputs) {
-		panic("Invalid number of outputs provided, does no match number of output neurons.")
-	}
-
-	for ni := 0; ni < len(nw.Layers[cli]); ni++ {
-		nw.SetOutputNeuronResult(ni, outputs[ni])
-	}
-
-	return nw
-}
-
-func (nw *Network) SetOutputNeuronResult(ni int, r string) (this *Network) {
-	cli := len(nw.Layers) - 1
-	if cli < 0 {
-		panic("Trying to set the output result of a non-output layer!")
-	}
-	nw.Layers[cli][ni].Result = r
 
 	return nw
 }
@@ -151,7 +76,7 @@ func (nw *Network) Process() (result string) {
 			for plni := 0; plni < len(pl); plni++ {
 				pn := &pl[plni]
 
-				v := pn.Value * nw.getConnection(pli, plni, lni).Weight
+				v := pn.Value * (&nw.Layers[pli][plni].Connections[lni])[connection.IndexWeight]
 				n.Value += v
 			}
 
@@ -167,7 +92,8 @@ func (nw *Network) Process() (result string) {
 		for sllni := 0; sllni < len(sll); sllni++ {
 			slln := &sll[sllni]
 
-			v := slln.Value * nw.getConnection(slli, sllni, llni).Weight
+			v := slln.Value * (&nw.Layers[slli][sllni].Connections[llni])[connection.IndexWeight]
+
 			lln.Value += v
 		}
 
@@ -190,8 +116,4 @@ func (nw *Network) Process() (result string) {
 	}
 
 	return result
-}
-
-func (nw *Network) getConnection(li int, ni int, ci int) (c *connection.Connection) {
-	return &nw.Layers[li][ni].Connections[ci]
 }

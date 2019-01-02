@@ -43,64 +43,58 @@ func main() {
 	inputs := []float64{-1, 1, 1, -1}
 	outputs := []string{"Solid", "Vertical", "Diagonal", "Horizontal"}
 
-	nw := network.New()
+	nw := network.New([]layer.Layer{
+		*layer.New(4, neuron.TypeNil).SetInputNeuronValues(inputs),
+		*layer.New(4, neuron.TypeSigmoid),
+		*layer.New(4, neuron.TypeSigmoid),
+		*layer.New(8, neuron.TypeRectifiedLinearUnit),
+		*layer.New(4, neuron.TypePositiveBinary).SetOutputNeuronResults(outputs),
+	})
 
-	// Input Layer
-	nw.AddLayer(layer.New(4, neuron.TypeNil)).
-		SetInputNeuronValues(inputs)
-
-	// Hidden Layer 1
-	nw.AddLayer(layer.New(4, neuron.TypeSigmoid)).
-		SetConnectionWeights(connection.MapCollection{
-			{0, 0, 1},
-			{0, 2, 1},
-			{1, 1, 1},
-			{1, 3, 1},
-			{2, 1, 1},
-			{2, 3, -1},
-			{3, 0, 1},
-			{3, 2, -1},
-		})
-
-	// Hidden Layer 2
-	nw.AddLayer(layer.New(4, neuron.TypeSigmoid)).
-		SetConnectionWeights(connection.MapCollection{
-			{0, 0, 1},
-			{0, 1, -1},
-			{1, 0, 1},
-			{1, 1, 1},
-			{2, 2, 1},
-			{2, 3, 1},
-			{3, 2, -1},
-			{3, 3, 1},
-		})
-
-	// Hidden Layer 3
-	nw.AddLayer(layer.New(8, neuron.TypeRectifiedLinearUnit)).
-		SetConnectionWeights(connection.MapCollection{
-			{0, 0, 1},
-			{0, 1, -1},
-			{1, 2, 1},
-			{1, 3, -1},
-			{2, 4, 1},
-			{2, 5, -1},
-			{3, 6, 1},
-			{3, 7, -1},
-		})
-
-	// Output Layer
-	nw.AddLayer(layer.New(4, neuron.TypePositiveBinary)).
-		SetOutputNeuronResults(outputs).
-		SetConnectionWeights(connection.MapCollection{
-			{0, 0, 1},
-			{1, 0, 1},
-			{2, 1, 1},
-			{3, 1, 1},
-			{4, 2, 1},
-			{5, 2, 1},
-			{6, 3, 1},
-			{7, 3, 1},
-		})
+	nw.Connect(
+		[]connection.Map{
+			{
+				{0, 0, 1},
+				{0, 2, 1},
+				{1, 1, 1},
+				{1, 3, 1},
+				{2, 1, 1},
+				{2, 3, -1},
+				{3, 0, 1},
+				{3, 2, -1},
+			},
+			{
+				{0, 0, 1},
+				{0, 1, -1},
+				{1, 0, 1},
+				{1, 1, 1},
+				{2, 2, 1},
+				{2, 3, 1},
+				{3, 2, -1},
+				{3, 3, 1},
+			},
+			{
+				{0, 0, 1},
+				{0, 1, -1},
+				{1, 2, 1},
+				{1, 3, -1},
+				{2, 4, 1},
+				{2, 5, -1},
+				{3, 6, 1},
+				{3, 7, -1},
+			},
+			{
+				{0, 0, 1},
+				{1, 0, 1},
+				{2, 1, 1},
+				{3, 1, 1},
+				{4, 2, 1},
+				{5, 2, 1},
+				{6, 3, 1},
+				{7, 3, 1},
+			},
+		},
+	)
 
 	result := nw.Process()
 
