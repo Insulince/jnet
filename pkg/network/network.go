@@ -52,7 +52,7 @@ func (nw *Network) RandomizeConnectionWeights() (this *Network) {
 	return nw
 }
 
-func (nw *Network) ZeroOutConnectionWeights() (this *Network) {
+func (nw *Network) SetAllConnectionWeightsTo(v float64) (this *Network) {
 	for li := 0; li < len(nw.Layers)-1; li++ {
 		cl := nw.Layers[li]
 		for cni := 0; cni < len(cl); cni++ {
@@ -60,7 +60,7 @@ func (nw *Network) ZeroOutConnectionWeights() (this *Network) {
 			for ci := 0; ci < len(cn.Connections); ci++ {
 				cc := &cn.Connections[ci]
 
-				cc[connection.IndexWeight] = 0
+				cc[connection.IndexWeight] = v
 			}
 		}
 	}

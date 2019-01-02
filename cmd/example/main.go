@@ -6,6 +6,7 @@ import (
 	"jnet/pkg/layer"
 	"jnet/pkg/network"
 	"jnet/pkg/neuron"
+	"jnet/pkg/util"
 )
 
 // This network is an example that was constructed based on Brandon Rohrer's excellent talk
@@ -50,7 +51,7 @@ func main() {
 			SetOutputNeuronResults(
 				[]string{"Solid", "Vertical", "Diagonal", "Horizontal"},
 			),
-	}).ZeroOutConnectionWeights().
+	}).SetAllConnectionWeightsTo(util.Midpoint).
 		ApplyConnectionMaps([]connection.Map{
 			{
 				{0, 0, 1},

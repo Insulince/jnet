@@ -12,15 +12,15 @@ func sigmoid(x float64) (y float64) {
 }
 
 func rectifiedLinearUnit(x float64) (y float64) {
-	if x > util.Cutoff {
+	if x > util.Midpoint {
 		return x
 	}
-	return util.Cutoff
+	return util.Midpoint
 }
 
 func positiveBinary(x float64) (y float64) {
-	if x > util.Cutoff {
+	if x > util.Midpoint {
 		return util.Max
 	}
-	return util.Cutoff
+	return util.Midpoint
 }
