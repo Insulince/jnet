@@ -24,8 +24,6 @@ func (nw *Network) CreateConnections(l Layer) (this *Network) {
 
 			// For every neuron in the current layer...
 			for ni := 0; ni < len(l); ni++ {
-				//n := l[ni]
-
 				// Append the current neuron as a connection to the previous neuron with weight 0.
 				pn.Connections = append(pn.Connections, *NewConnection())
 			}
