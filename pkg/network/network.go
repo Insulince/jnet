@@ -12,15 +12,9 @@ type Network struct {
 }
 
 func New(ls []layer.Layer) (nnw *Network) {
-	return &Network{
+	nw := &Network{
 		Logger: util.NewLogger("Network", util.DefaultPadding),
 		Layers: ls,
-	}
-}
-
-func (nw *Network) Connect(cms []connection.Map) (this *Network) {
-	if len(nw.Layers) != len(cms)+1 {
-		panic("Different number of layers than connection maps!")
 	}
 
 	for li := 0; li < len(nw.Layers)-1; li++ {
@@ -37,6 +31,14 @@ func (nw *Network) Connect(cms []connection.Map) (this *Network) {
 				cln.Connections = append(cln.Connections, connection.Connection{float64(clni), float64(nlni), 0})
 			}
 		}
+	}
+
+	return nw
+}
+
+func (nw *Network) ApplyConnectionMaps(cms []connection.Map) (this *Network) {
+	if len(nw.Layers) != len(cms)+1 {
+		panic("Different number of layers than connection maps!")
 	}
 
 	for cmsi := 0; cmsi < len(cms); cmsi++ {

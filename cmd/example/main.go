@@ -49,7 +49,7 @@ func main() {
 		*layer.New(4, neuron.TypePositiveBinary).SetOutputNeuronResults(outputs),
 	})
 
-	nw.Connect(
+	nw.ApplyConnectionMaps(
 		[]connection.Map{
 			{
 				{0, 0, 1},
