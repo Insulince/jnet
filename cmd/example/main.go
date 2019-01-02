@@ -8,8 +8,6 @@ import (
 	"jnet/pkg/neuron"
 )
 
-// TODO: Convert -1 value to 0 instead. (Update neural functions as well).
-
 // This network is an example that was constructed based on Brandon Rohrer's excellent talk
 // on Neural Networks:  https://www.youtube.com/watch?v=ILsA4nyG7I0
 // Explanation:
