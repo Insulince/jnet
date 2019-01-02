@@ -28,7 +28,39 @@ func New(ls []layer.Layer) (nnw *Network) {
 			// For every neuron in the next layer...
 			for nlni := 0; nlni < len(nl); nlni++ {
 				// Create a connection from the current current layer neuron to the current next layer neuron with weight 0.
-				cln.Connections = append(cln.Connections, connection.Connection{float64(clni), float64(nlni), 0})
+				cln.Connections = append(cln.Connections, *connection.New(clni, nlni))
+			}
+		}
+	}
+
+	return nw
+}
+
+func (nw *Network) RandomizeConnectionWeights() (this *Network) {
+	for li := 0; li < len(nw.Layers)-1; li++ {
+		cl := nw.Layers[li]
+		for cni := 0; cni < len(cl); cni++ {
+			cn := &cl[cni]
+			for ci := 0; ci < len(cn.Connections); ci++ {
+				cc := &cn.Connections[ci]
+
+				cc[connection.IndexWeight] = connection.RandomWeight()
+			}
+		}
+	}
+
+	return nw
+}
+
+func (nw *Network) ZeroOutConnectionWeights() (this *Network) {
+	for li := 0; li < len(nw.Layers)-1; li++ {
+		cl := nw.Layers[li]
+		for cni := 0; cni < len(cl); cni++ {
+			cn := &cl[cni]
+			for ci := 0; ci < len(cn.Connections); ci++ {
+				cc := &cn.Connections[ci]
+
+				cc[connection.IndexWeight] = 0
 			}
 		}
 	}

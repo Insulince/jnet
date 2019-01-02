@@ -38,19 +38,20 @@ import (
 // This network comes PRE-TRAINED. It does not use any data science or calculus to create its determinations.
 // This is just an exercise in the machinery behind neural networks.
 func main() {
-	inputs := []float64{-1, 1, 1, -1}
-	outputs := []string{"Solid", "Vertical", "Diagonal", "Horizontal"}
-
 	nw := network.New([]layer.Layer{
-		*layer.New(4, neuron.TypeNil).SetInputNeuronValues(inputs),
+		*layer.New(4, neuron.TypeNil).
+			SetInputNeuronValues(
+				[]float64{-1, -1, -1, -1},
+			),
 		*layer.New(4, neuron.TypeSigmoid),
 		*layer.New(4, neuron.TypeSigmoid),
 		*layer.New(8, neuron.TypeRectifiedLinearUnit),
-		*layer.New(4, neuron.TypePositiveBinary).SetOutputNeuronResults(outputs),
-	})
-
-	nw.ApplyConnectionMaps(
-		[]connection.Map{
+		*layer.New(4, neuron.TypePositiveBinary).
+			SetOutputNeuronResults(
+				[]string{"Solid", "Vertical", "Diagonal", "Horizontal"},
+			),
+	}).ZeroOutConnectionWeights().
+		ApplyConnectionMaps([]connection.Map{
 			{
 				{0, 0, 1},
 				{0, 2, 1},
@@ -91,10 +92,7 @@ func main() {
 				{6, 3, 1},
 				{7, 3, 1},
 			},
-		},
-	)
+		})
 
-	result := nw.Process()
-
-	nw.Log(fmt.Sprintf("Result: %v", result))
+	fmt.Printf("Result: \"%v\"\n", nw.Process())
 }

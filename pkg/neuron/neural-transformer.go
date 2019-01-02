@@ -1,31 +1,26 @@
 package neuron
 
 import (
+	"jnet/pkg/util"
 	"math"
-)
-
-const (
-	Max    = 1.0
-	Min    = -1.0
-	Cutoff = (Max-Min)/2 + Min
 )
 
 type NeuralTransformer func(x float64) (y float64)
 
 func sigmoid(x float64) (y float64) {
-	return (Max-Min)/(1+math.Pow(math.E, -x)) + Min
+	return (util.Max-util.Min)/(1+math.Pow(math.E, -x)) + util.Min
 }
 
 func rectifiedLinearUnit(x float64) (y float64) {
-	if x > Cutoff {
+	if x > util.Cutoff {
 		return x
 	}
-	return Cutoff
+	return util.Cutoff
 }
 
 func positiveBinary(x float64) (y float64) {
-	if x > Cutoff {
-		return Max
+	if x > util.Cutoff {
+		return util.Max
 	}
-	return Cutoff
+	return util.Cutoff
 }
