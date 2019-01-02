@@ -6,6 +6,13 @@ import (
 	"math"
 )
 
+const (
+	TypeNil                 = "nil"
+	TypeSigmoid             = "sigmoid"
+	TypeRectifiedLinearUnit = "rectifiedLinearUnit"
+	TypePositiveBinary      = "positiveBinary"
+)
+
 type Neuron struct {
 	*util.Logger
 	Connections []connection.Connection
@@ -14,29 +21,26 @@ type Neuron struct {
 	Transform   NeuralTransformer
 }
 
-type NeuralConstructor func() (nn *Neuron)
+func New(t string) (nn *Neuron) {
+	var nt NeuralTransformer
 
-func newNeuron(nt NeuralTransformer) (nn *Neuron) {
+	switch t {
+	case TypeNil:
+		nt = nil
+	case TypeSigmoid:
+		nt = sigmoid
+	case TypeRectifiedLinearUnit:
+		nt = rectifiedLinearUnit
+	case TypePositiveBinary:
+		nt = positiveBinary
+	default:
+		panic("Unrecognized neuron type provided")
+	}
+
 	return &Neuron{
 		Logger:    util.NewLogger("Neuron", util.DefaultPadding),
 		Transform: nt,
 	}
-}
-
-func NewNilNeuron() (nn *Neuron) {
-	return newNeuron(nil)
-}
-
-func NewSigmoidNeuron() (nn *Neuron) {
-	return newNeuron(sigmoid)
-}
-
-func NewRectifiedLinearUnitNeuron() (nn *Neuron) {
-	return newNeuron(rectifiedLinearUnit)
-}
-
-func NewPositiveBinaryNeuron() (nn *Neuron) {
-	return newNeuron(positiveBinary)
 }
 
 type NeuralTransformer func(x float64) (y float64)

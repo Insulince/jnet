@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
+	"jnet/pkg/connection"
 	"jnet/pkg/layer"
 	"jnet/pkg/network"
+	"jnet/pkg/neuron"
 )
+
+// TODO: Convert -1 value to 0 instead. (Update neural functions as well).
 
 // This network is an example that was constructed based on Brandon Rohrer's excellent talk
 // on Neural Networks:  https://www.youtube.com/watch?v=ILsA4nyG7I0
@@ -36,69 +40,67 @@ import (
 // This network comes PRE-TRAINED. It does not use any data science or calculus to create its determinations.
 // This is just an exercise in the machinery behind neural networks.
 func main() {
-	inputs := [4]float64{-1, 1, 1, -1}
+	inputs := []float64{-1, 1, 1, -1}
+	outputs := []string{"Solid", "Vertical", "Diagonal", "Horizontal"}
 
-	nw := network.NewNetwork()
+	nw := network.New()
 
 	// Input Layer
-	il := *layer.NewNilLayer(4)
-	il[0].Value = inputs[0]
-	il[1].Value = inputs[1]
-	il[2].Value = inputs[2]
-	il[3].Value = inputs[3]
-	nw.CreateConnections(il)
+	nw.AddLayer(layer.New(4, neuron.TypeNil)).
+		SetInputNeuronValues(inputs)
 
 	// Hidden Layer 1
-	hl1 := *layer.NewSigmoidLayer(4)
-	nw.CreateConnections(hl1).
-		SetConnectionWeight(0, 0, 1).
-		SetConnectionWeight(0, 2, 1).
-		SetConnectionWeight(1, 1, 1).
-		SetConnectionWeight(1, 3, 1).
-		SetConnectionWeight(2, 1, 1).
-		SetConnectionWeight(2, 3, -1).
-		SetConnectionWeight(3, 0, 1).
-		SetConnectionWeight(3, 2, -1)
+	nw.AddLayer(layer.New(4, neuron.TypeSigmoid)).
+		SetConnectionWeights(connection.MapCollection{
+			{0, 0, 1},
+			{0, 2, 1},
+			{1, 1, 1},
+			{1, 3, 1},
+			{2, 1, 1},
+			{2, 3, -1},
+			{3, 0, 1},
+			{3, 2, -1},
+		})
 
 	// Hidden Layer 2
-	hl2 := *layer.NewSigmoidLayer(4)
-	nw.CreateConnections(hl2).
-		SetConnectionWeight(0, 0, 1).
-		SetConnectionWeight(0, 1, -1).
-		SetConnectionWeight(1, 0, 1).
-		SetConnectionWeight(1, 1, 1).
-		SetConnectionWeight(2, 2, 1).
-		SetConnectionWeight(2, 3, 1).
-		SetConnectionWeight(3, 2, -1).
-		SetConnectionWeight(3, 3, 1)
+	nw.AddLayer(layer.New(4, neuron.TypeSigmoid)).
+		SetConnectionWeights(connection.MapCollection{
+			{0, 0, 1},
+			{0, 1, -1},
+			{1, 0, 1},
+			{1, 1, 1},
+			{2, 2, 1},
+			{2, 3, 1},
+			{3, 2, -1},
+			{3, 3, 1},
+		})
 
 	// Hidden Layer 3
-	hl3 := *layer.NewRectifiedLinearUnitLayer(8)
-	nw.CreateConnections(hl3).
-		SetConnectionWeight(0, 0, 1).
-		SetConnectionWeight(0, 1, -1).
-		SetConnectionWeight(1, 2, 1).
-		SetConnectionWeight(1, 3, -1).
-		SetConnectionWeight(2, 4, 1).
-		SetConnectionWeight(2, 5, -1).
-		SetConnectionWeight(3, 6, 1).
-		SetConnectionWeight(3, 7, -1)
+	nw.AddLayer(layer.New(8, neuron.TypeRectifiedLinearUnit)).
+		SetConnectionWeights(connection.MapCollection{
+			{0, 0, 1},
+			{0, 1, -1},
+			{1, 2, 1},
+			{1, 3, -1},
+			{2, 4, 1},
+			{2, 5, -1},
+			{3, 6, 1},
+			{3, 7, -1},
+		})
 
 	// Output Layer
-	ol := *layer.NewPositiveBinaryLayer(4)
-	nw.CreateConnections(ol).
-		SetOutputNeuronResult(0, "Solid").
-		SetOutputNeuronResult(1, "Vertical").
-		SetOutputNeuronResult(2, "Diagonal").
-		SetOutputNeuronResult(3, "Horizontal").
-		SetConnectionWeight(0, 0, 1).
-		SetConnectionWeight(1, 0, 1).
-		SetConnectionWeight(2, 1, 1).
-		SetConnectionWeight(3, 1, 1).
-		SetConnectionWeight(4, 2, 1).
-		SetConnectionWeight(5, 2, 1).
-		SetConnectionWeight(6, 3, 1).
-		SetConnectionWeight(7, 3, 1)
+	nw.AddLayer(layer.New(4, neuron.TypePositiveBinary)).
+		SetOutputNeuronResults(outputs).
+		SetConnectionWeights(connection.MapCollection{
+			{0, 0, 1},
+			{1, 0, 1},
+			{2, 1, 1},
+			{3, 1, 1},
+			{4, 2, 1},
+			{5, 2, 1},
+			{6, 3, 1},
+			{7, 3, 1},
+		})
 
 	result := nw.Process()
 

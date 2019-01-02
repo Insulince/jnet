@@ -7,8 +7,12 @@ type Connection struct {
 	Weight float64
 }
 
-func NewConnection() (nc *Connection) {
+func New() (nc *Connection) {
 	return &Connection{
 		Logger: util.NewLogger("Connection", util.DefaultPadding),
 	}
 }
+
+type Map [3]float64
+
+type MapCollection []Map
