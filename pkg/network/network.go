@@ -5,6 +5,7 @@ import (
 	"jnet/pkg/connection"
 	"jnet/pkg/layer"
 	"jnet/pkg/util"
+	"math"
 )
 
 type Network struct {
@@ -96,7 +97,27 @@ type TD struct {
 	Data  []float64
 }
 
+func (nw *Network) GetLoss(truth []float64) (loss float64) {
+	ol := nw.Layers[len(nw.Layers)-1]
+
+	if len(truth) != len(ol) {
+		panic("Can't calculate loss, truth and output layer are of different lengths!")
+	}
+
+	for ni := 0; ni < len(ol); ni++ {
+		loss += math.Abs(truth[ni] - ol[ni].Value)
+	}
+
+	return loss
+}
+
 func (nw *Network) Train(trainingData []TD) (this *Network) {
+	for _, td := range trainingData {
+		nw.Process(td.Data)
+		loss := nw.GetLoss(td.Truth)
+		fmt.Println(loss)
+	}
+
 	return nw
 }
 
@@ -112,6 +133,9 @@ func (nw *Network) Process(input []float64) (this *Network) {
 		// For every neuron in the current layer...
 		for lni := 0; lni < len(l); lni++ {
 			n := &l[lni]
+
+			// Reset the neuron's value (deletes effect from previous iteration on this model).
+			n.Value = util.Midpoint
 
 			// For every neuron in the previous layer...
 			for plni := 0; plni < len(pl); plni++ {

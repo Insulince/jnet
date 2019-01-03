@@ -5,7 +5,13 @@ import (
 	"jnet/pkg/layer"
 	"jnet/pkg/network"
 	"jnet/pkg/neuron"
+	"math/rand"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
 
 func main() {
 	nw := network.New([]layer.Layer{
@@ -19,7 +25,7 @@ func main() {
 			),
 	}).RandomizeConnectionWeights()
 
-	td := []network.TD{
+	nw.Train([]network.TD{
 		{
 			Truth: []float64{1.0, 0.0, 0.0, 0.0},
 			Data:  []float64{1, 1, 1, 1},
@@ -52,9 +58,7 @@ func main() {
 			Truth: []float64{0.0, 0.0, 0.0, 1.0},
 			Data:  []float64{-1, -1, 1, 1},
 		},
-	}
-
-	nw.Train(td)
+	})
 
 	nw.Process([]float64{1, -1, 1, -1})
 
