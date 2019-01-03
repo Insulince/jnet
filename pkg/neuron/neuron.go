@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	TypeNil                 = "nil"
+	TypeInput               = "input"
 	TypeSigmoid             = "sigmoid"
 	TypeRectifiedLinearUnit = "rectifiedLinearUnit"
-	TypePassThrough         = "passThrough"
+	TypeOutput              = "output"
 )
 
 type Neuron struct {
@@ -24,13 +24,13 @@ func New(t string) (nn *Neuron) {
 	var nt NeuralTransformer
 
 	switch t {
-	case TypeNil:
+	case TypeInput:
 		nt = nil
 	case TypeSigmoid:
 		nt = sigmoid
 	case TypeRectifiedLinearUnit:
 		nt = rectifiedLinearUnit
-	case TypePassThrough:
+	case TypeOutput:
 		nt = passThrough
 	default:
 		panic("Unrecognized neuron type provided")

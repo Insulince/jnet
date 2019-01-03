@@ -40,14 +40,11 @@ import (
 // This is just an exercise in the machinery behind neural networks.
 func main() {
 	nw := network.New([]layer.Layer{
-		*layer.New(4, neuron.TypeNil).
-			SetInputNeuronValues(
-				[]float64{1, -1, 1, -1},
-			),
+		*layer.New(4, neuron.TypeInput),
 		*layer.New(4, neuron.TypeSigmoid),
 		*layer.New(4, neuron.TypeSigmoid),
 		*layer.New(8, neuron.TypeRectifiedLinearUnit),
-		*layer.New(4, neuron.TypePassThrough).
+		*layer.New(4, neuron.TypeOutput).
 			SetOutputNeuronResults(
 				[]string{"Solid", "Vertical", "Diagonal", "Horizontal"},
 			),
@@ -95,7 +92,7 @@ func main() {
 			},
 		})
 
-	nw.Process()
+	nw.Process([]float64{1, -1, 1, -1})
 
 	fmt.Println(nw.Results())
 }

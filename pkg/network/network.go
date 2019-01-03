@@ -91,7 +91,18 @@ func (nw *Network) ApplyConnectionMaps(cms []connection.Map) (this *Network) {
 	return nw
 }
 
-func (nw *Network) Process() (this *Network) {
+type TD struct {
+	Truth []float64
+	Data  []float64
+}
+
+func (nw *Network) Train(trainingData []TD) (this *Network) {
+	return nw
+}
+
+func (nw *Network) Process(input []float64) (this *Network) {
+	nw.Layers[0].SetInputNeuronValues(input)
+
 	// For every layer except the first...
 	for li := 1; li < len(nw.Layers); li++ {
 		l := nw.Layers[li]
