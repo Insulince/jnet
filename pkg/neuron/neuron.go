@@ -9,7 +9,7 @@ const (
 	TypeNil                 = "nil"
 	TypeSigmoid             = "sigmoid"
 	TypeRectifiedLinearUnit = "rectifiedLinearUnit"
-	TypePositiveBinary      = "positiveBinary"
+	TypePassThrough         = "passThrough"
 )
 
 type Neuron struct {
@@ -30,8 +30,8 @@ func New(t string) (nn *Neuron) {
 		nt = sigmoid
 	case TypeRectifiedLinearUnit:
 		nt = rectifiedLinearUnit
-	case TypePositiveBinary:
-		nt = positiveBinary
+	case TypePassThrough:
+		nt = passThrough
 	default:
 		panic("Unrecognized neuron type provided")
 	}

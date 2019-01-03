@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"jnet/pkg/connection"
 	"jnet/pkg/layer"
 	"jnet/pkg/util"
@@ -90,17 +91,12 @@ func (nw *Network) ApplyConnectionMaps(cms []connection.Map) (this *Network) {
 	return nw
 }
 
-func (nw *Network) Process() (result string) {
-	lli := len(nw.Layers) - 1
-	ll := nw.Layers[lli]
-	slli := len(nw.Layers) - 2
-	sll := nw.Layers[slli]
-
+func (nw *Network) Process() (this *Network) {
 	// For every layer except the first...
-	for li := 1; li < lli; li++ {
+	for li := 1; li < len(nw.Layers); li++ {
 		l := nw.Layers[li]
-		pl := nw.Layers[li-1]
 		pli := li - 1
+		pl := nw.Layers[pli]
 
 		// For every neuron in the current layer...
 		for lni := 0; lni < len(l); lni++ {
@@ -118,36 +114,13 @@ func (nw *Network) Process() (result string) {
 		}
 	}
 
-	// For every neuron in the last layer...
-	for llni := 0; llni < len(ll); llni++ {
-		lln := &ll[llni]
+	return nw
+}
 
-		// For every neuron in the second to last layer...
-		for sllni := 0; sllni < len(sll); sllni++ {
-			slln := &sll[sllni]
-
-			v := slln.Value * (&nw.Layers[slli][sllni].Connections[llni])[connection.IndexWeight]
-
-			lln.Value += v
-		}
-
-		lln.Value = lln.Transform(lln.Value)
+func (nw *Network) Results() (results string) {
+	for _, v := range nw.Layers[len(nw.Layers)-1] {
+		results = fmt.Sprintf("%v%10s %8f\n", results, v.Result, v.Value)
 	}
 
-	// For every neuron in the last layer...
-	for llni := 0; llni < len(ll); llni++ {
-		lln := &ll[llni]
-		if lln.Value == 1 {
-			if result != "" {
-				panic("Result was set twice!")
-			}
-			result = nw.Layers[lli][llni].Result
-		}
-	}
-
-	if result == "" {
-		panic("Result was never set!")
-	}
-
-	return result
+	return results
 }

@@ -42,12 +42,12 @@ func main() {
 	nw := network.New([]layer.Layer{
 		*layer.New(4, neuron.TypeNil).
 			SetInputNeuronValues(
-				[]float64{-1, -1, -1, -1},
+				[]float64{1, -1, 1, -1},
 			),
 		*layer.New(4, neuron.TypeSigmoid),
 		*layer.New(4, neuron.TypeSigmoid),
 		*layer.New(8, neuron.TypeRectifiedLinearUnit),
-		*layer.New(4, neuron.TypePositiveBinary).
+		*layer.New(4, neuron.TypePassThrough).
 			SetOutputNeuronResults(
 				[]string{"Solid", "Vertical", "Diagonal", "Horizontal"},
 			),
@@ -95,5 +95,7 @@ func main() {
 			},
 		})
 
-	fmt.Printf("Result: \"%v\"\n", nw.Process())
+	nw.Process()
+
+	fmt.Println(nw.Results())
 }
