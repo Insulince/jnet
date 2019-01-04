@@ -162,12 +162,18 @@ func (nw *Network) GetLoss(truth []float64) (loss float64) {
 	return loss
 }
 
+// Predict will run an input vector, `input` against the neural network which sets its outputs for a prediction.
+// Currently it just acts as an exported wrapper around forwardPass, because there is no need
+// to do anything except a forward pass, however, to stay in line with backwardPass, I made
+// forwardPass unexported.
 func (nw *Network) Predict(input []float64) (this *Network) {
 	nw.forwardPass(input)
 
 	return nw
 }
 
+// forwardPass runs the neural network against an input vector, `input`, and set its outputs for a prediction.
+// During this process each neuron's `Value`, `Sum`, and `LocalGradients` are evaluated.
 func (nw *Network) forwardPass(input []float64) (this *Network) {
 	nw.Layers[0].SetInputNeuronValues(input)
 
@@ -276,7 +282,9 @@ func (nw *Network) forwardPass(input []float64) (this *Network) {
 	return nw
 }
 
-// Train will
+// Train will exercise the network against a series of "truth" input vectors, `trainingData`, choosing one at random, `TrainingIterations` times.
+// Each iteration, a forward pass is executed to get the current outputs, loss is calculated, a backward pass is executed to calculate the gradients,
+// and each weight is adjusted to make the network perform better.
 func (nw *Network) Train(trainingData []TD) (this *Network) {
 	for i := 0; i < TrainingIterations; i++ { // For every desired training iteration...
 		td := trainingData[rand.Intn(len(trainingData))]
@@ -289,6 +297,8 @@ func (nw *Network) Train(trainingData []TD) (this *Network) {
 	return nw
 }
 
+// backwardPass runs the network backwards from the state its last forward pass left it in to determine the LossGradient of each neuron (by
+// comparing to the provided loss value, `loss`), and adjusts each neuron's weight based on it to make the network perform better.
 func (nw *Network) backwardPass(loss float64) {
 	lli := len(nw.Layers) - 1
 	ll := nw.Layers[lli]
