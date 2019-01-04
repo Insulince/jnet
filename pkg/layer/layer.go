@@ -9,9 +9,10 @@ type Layer []neuron.Neuron
 
 func New(qn int, t string) (nl *Layer) {
 	l := Layer{}
-	for i := 0; i < qn; i++ {
+	for ni := 0; ni < qn; ni++ { // For every neuron requested...
 		l = append(l, *neuron.New(t))
 	}
+
 	return &l
 }
 
@@ -20,7 +21,8 @@ func (l *Layer) SetInputNeuronValues(values []float64) (this *Layer) {
 		panic("Invalid number of inputs provided, does no match number of input neurons.")
 	}
 
-	for ni := 0; ni < len(*l); ni++ {
+	qn := len(*l)
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
 		l.SetInputNeuronValue(ni, values[ni])
 	}
 
@@ -33,9 +35,11 @@ func (l *Layer) SetInputNeuronValue(ni int, v float64) (this *Layer) {
 	return l
 }
 
-func (l *Layer) SetConnectionWeights(cmc connection.Map) (this *Layer) {
-	for _, cm := range cmc {
-		l.SetConnectionWeight(cm)
+func (l *Layer) SetConnectionWeights(cm connection.Map) (this *Layer) {
+	qc := len(cm)
+	for ci := 0; ci < qc; ci++ { // For every connection in the connection map...
+		c := cm[ci]
+		l.SetConnectionWeight(c)
 	}
 
 	return l
@@ -52,7 +56,8 @@ func (l *Layer) SetOutputNeuronResults(outputs []string) (this *Layer) {
 		panic("Invalid number of outputs provided, does no match number of output neurons.")
 	}
 
-	for ni := 0; ni < len(*l); ni++ {
+	qn := len(*l)
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
 		l.SetOutputNeuronResult(ni, outputs[ni])
 	}
 

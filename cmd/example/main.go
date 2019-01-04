@@ -92,7 +92,7 @@ func main() {
 			},
 		})
 
-	nw.Process([]float64{1, -1, 1, -1})
+	nw.Predict([]float64{1, -1, 1, -1})
 
-	fmt.Println(nw.Results())
+	fmt.Println(nw.GetResults())
 }

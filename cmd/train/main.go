@@ -27,40 +27,40 @@ func main() {
 
 	nw.Train([]network.TD{
 		{
-			Truth: []float64{1.0, 0.0, 0.0, 0.0},
+			Truth: []float64{1.0, 0.0, 0.0, 0.0}, // Solid - White
 			Data:  []float64{1, 1, 1, 1},
 		},
 		{
-			Truth: []float64{1.0, 0.0, 0.0, 0.0},
+			Truth: []float64{1.0, 0.0, 0.0, 0.0}, // Solid - Black
 			Data:  []float64{-1, -1, -1, -1},
 		},
 		{
-			Truth: []float64{0.0, 1.0, 0.0, 0.0},
-			Data:  []float64{-1, 1, 1, -1},
-		},
-		{
-			Truth: []float64{0.0, 1.0, 0.0, 0.0},
+			Truth: []float64{0.0, 1.0, 0.0, 0.0}, // Vertical - White Left
 			Data:  []float64{1, -1, -1, 1},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 1.0, 0.0},
-			Data:  []float64{-1, 1, -1, 1},
+			Truth: []float64{0.0, 1.0, 0.0, 0.0}, // Vertical - Black Left
+			Data:  []float64{-1, 1, 1, -1},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 1.0, 0.0},
+			Truth: []float64{0.0, 0.0, 1.0, 0.0}, // Diagonal - White Forward
 			Data:  []float64{1, -1, 1, -1},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 0.0, 1.0},
+			Truth: []float64{0.0, 0.0, 1.0, 0.0}, // Diagonal - Black Forward
+			Data:  []float64{-1, 1, -1, 1},
+		},
+		{
+			Truth: []float64{0.0, 0.0, 0.0, 1.0}, // Horizontal - White Top
 			Data:  []float64{1, 1, -1, -1},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 0.0, 1.0},
+			Truth: []float64{0.0, 0.0, 0.0, 1.0}, // Horizontal - Black Top
 			Data:  []float64{-1, -1, 1, 1},
 		},
 	})
 
-	nw.Process([]float64{1, -1, 1, -1})
+	nw.Predict([]float64{1, -1, 1, -1}) // Diagonal - White Forward
 
-	fmt.Println(nw.Results())
+	fmt.Println(nw.GetResults())
 }
