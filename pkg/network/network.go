@@ -13,7 +13,7 @@ import (
 const (
 	LearningRate         data.V        = 0.01
 	StartingLossGradient data.Gradient = 1.0
-	TrainingIterations                 = 20000
+	TrainingIterations                 = 200
 )
 
 type Network struct {
@@ -149,7 +149,7 @@ func (nw *Network) CalculateLoss(truth data.T) (this *Network) {
 
 	for ni := 0; ni < qn; ni++ { // For every neuron in the last layer...
 		n := &ll[ni]
-		nw.Loss += data.Loss(math.Pow(float64(truth[ni]-n.Value), 2)) // MSE
+		nw.Loss += data.Loss(math.Pow(math.Abs(float64(truth[ni]-n.Value)), 2))
 	}
 
 	return nw
@@ -285,22 +285,29 @@ func (nw *Network) Train(trainingData []data.TrainingData) (this *Network) {
 }
 
 // TODO: This used to accept `loss`, but never used it????
-// backwardPass runs the network backwards from the state its last forward pass left it in to determine the LossGradient of each neuron (by
+//
+// TODO: I suspect that the issue has to do with an overkill on loops. Try debugging and inspecting the number of loss gradients appear in a neuron. Its way more than intended.
+// backwardPass runs the network backwards from the state its last forward pass left it in to determine the LossGradients of each neuron (by
 // comparing to the provided loss value, `loss`), and adjusts each neuron's weight based on it to make the network perform better.
 func (nw *Network) backwardPass() (this *Network) {
-	lli := len(nw.Layers) - 1
-	ll := nw.Layers[lli]
+	ql := len(nw.Layers)
+	fli, sli, lli, slli := 0, 1, ql-1, ql-2
+	fl, sl, ll, sll := nw.Layers[fli], nw.Layers[sli], nw.Layers[lli], nw.Layers[slli]
 
 	qlln := len(ll)
 	for llni := 0; llni < qlln; llni++ { // For every neuron in the last layer...
 		lln := &ll[llni]
 
-		// d(L)/d(n_i_j.v) = d(1)/(n_i_j.v) * d(L)/(1)
-		lln.LossGradient += lln.LocalGradients[llni] * StartingLossGradient
+		qslln := len(sll)
+		for sllni := 0; sllni < qslln; sllni++ { // For every neuron in the second to last layer...
+			lln.LossGradients = append(lln.LossGradients, lln.LocalGradients[sllni]*StartingLossGradient)
+
+			lln.LossGradientSum = StartingLossGradient // The gradient sum to use for the last layer is just the starting loss gradient, since there are no parent neurons.
+		}
 	}
 
-	for li := lli - 1; li > -1; li-- { // For every layer except the last, starting from the second to last...
-		l, nl := nw.Layers[li], nw.Layers[li+1]
+	for li := slli; li > fli; li-- { // For every layer except the last, starting from the second to last...
+		pl, l, nl := nw.Layers[li-1], nw.Layers[li], nw.Layers[li+1]
 
 		qn := len(l)
 		for ni := 0; ni < qn; ni++ { // For every neuron in the current layer...
@@ -310,15 +317,48 @@ func (nw *Network) backwardPass() (this *Network) {
 			for nlni := 0; nlni < qnln; nlni++ { // For every neuron in the next layer...
 				nln := &nl[nlni]
 
-				// d(L)/d(n_i_j.v) = d(n_i+1_j.v)/(n_i_j.v) * d(L)/(n_i+1_j.v)
-				n.LossGradient += nln.LossGradient * nln.LocalGradients[ni]
+				qpln := len(pl)
+				for plni := 0; plni < qpln; plni++ { // For every neuron in the previous layer...
+					n.LossGradients = append(n.LossGradients, n.LocalGradients[plni]*nln.LossGradientSum)
+				}
+
+				for _, lg := range n.LossGradients { // For every loss gradient in the current neuron...
+					n.LossGradientSum += lg
+				}
 			}
+		}
+	}
+
+	qfln := len(fl)
+	for flni := 0; flni < qfln; flni++ { // For every neuron in the first layer...
+		fln := &fl[flni]
+
+		qsln := len(sl)
+		for slni := 0; slni < qsln; slni++ { // For every neuron in the second layer...
+			sln := &sl[slni]
+
+			// We use fln.Value here instead of a local gradient because the first layer has only 1 local gradient, which is the input, thus the value.
+			fln.LossGradients = append(fln.LossGradients, data.Gradient(fln.Value)*sln.LossGradientSum)
+
+			for _, lg := range fln.LossGradients {
+				fln.LossGradientSum += lg
+			}
+		}
+	}
+
+	// Weight Adjustment
+	for li := 0; li < ql; li++ { // For each layer...
+		l := &nw.Layers[li]
+
+		qn := len(*l)
+		for ni := 0; ni < qn; ni++ { // For each neuron in this layer...
+			n := &(*l)[ni]
 
 			qc := len(n.Connections)
 			for ci := 0; ci < qc; ci++ { // For every connection from this neuron...
 				c := &n.Connections[ci]
 
-				c[connection.IndexWeight] -= data.V(n.LossGradient) * LearningRate
+				c[connection.IndexWeight] -= data.V(n.LossGradientSum) * LearningRate
 			}
 		}
 	}

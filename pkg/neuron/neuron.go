@@ -15,14 +15,15 @@ const (
 
 type Neuron struct {
 	*util.Logger
-	Connections    []connection.Connection
-	Value          data.V
-	Sum            data.V
-	Result         string
-	Transform      NeuralTransformer
-	AntiTransorm   NeuralTransformer
-	LossGradient   data.Gradient   // d(loss)/d(me)
-	LocalGradients []data.Gradient // d(me)/d(n_i-1_k), d(me)/d(n_i-1_k+1), d(me)/d(n_i-1_k+2), ...
+	Connections     []connection.Connection
+	Value           data.V
+	Sum             data.V
+	Result          string
+	Transform       NeuralTransformer
+	AntiTransorm    NeuralTransformer
+	LossGradients   []data.Gradient
+	LossGradientSum data.Gradient
+	LocalGradients  []data.Gradient
 }
 
 func New(t string) (nn *Neuron) {
@@ -56,6 +57,7 @@ func New(t string) (nn *Neuron) {
 func (n *Neuron) StageForPass() {
 	n.Value = 0.0
 	n.Sum = 0.0
+	n.LossGradients = []data.Gradient{}
+	n.LossGradientSum = 0.0
 	n.LocalGradients = []data.Gradient{}
-	n.LossGradient = 0.0
 }
