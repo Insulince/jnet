@@ -2,6 +2,7 @@ package neuron
 
 import (
 	"jnet/pkg/connection"
+	"jnet/pkg/data"
 	"jnet/pkg/util"
 )
 
@@ -15,13 +16,13 @@ const (
 type Neuron struct {
 	*util.Logger
 	Connections    []connection.Connection
-	Value          float64
-	Sum            float64
+	Value          data.V
+	Sum            data.V
 	Result         string
 	Transform      NeuralTransformer
 	AntiTransorm   NeuralTransformer
-	LossGradient   float64   // d(loss)/d(me)
-	LocalGradients []float64 // d(me)/d(n_i-1_k), d(me)/d(n_i-1_k+1), d(me)/d(n_i-1_k+2), ...
+	LossGradient   data.Gradient   // d(loss)/d(me)
+	LocalGradients []data.Gradient // d(me)/d(n_i-1_k), d(me)/d(n_i-1_k+1), d(me)/d(n_i-1_k+2), ...
 }
 
 func New(t string) (nn *Neuron) {
@@ -50,4 +51,11 @@ func New(t string) (nn *Neuron) {
 		Transform:    nt,
 		AntiTransorm: nat,
 	}
+}
+
+func (n *Neuron) StageForPass() {
+	n.Value = 0.0
+	n.Sum = 0.0
+	n.LocalGradients = []data.Gradient{}
+	n.LossGradient = 0.0
 }

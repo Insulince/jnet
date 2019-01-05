@@ -1,7 +1,7 @@
 package connection
 
 import (
-	"jnet/pkg/util"
+	"jnet/pkg/data"
 	"math/rand"
 )
 
@@ -11,16 +11,16 @@ const (
 	IndexWeight
 )
 
-type Connection [3]float64
+type Connection [3]data.V
 
 func New(from int, to int) (c *Connection) {
 	return &Connection{
-		float64(from), float64(to), 0,
+		data.V(from), data.V(to), 0,
 	}
 }
 
-func RandomWeight() (rw float64) {
-	return rand.Float64()*(util.Max-util.Min) + util.Min
+func RandomWeight() (rw data.V) {
+	return data.V(rand.Float64())*(data.Max-data.Min) + data.Min
 }
 
 type Map []Connection

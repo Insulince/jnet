@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"jnet/pkg/data"
 	"jnet/pkg/layer"
 	"jnet/pkg/network"
 	"jnet/pkg/neuron"
@@ -25,42 +26,42 @@ func main() {
 			),
 	}).RandomizeConnectionWeights()
 
-	nw.Train([]network.TD{
+	nw.Train([]data.TrainingData{
 		{
-			Truth: []float64{1.0, 0.0, 0.0, 0.0}, // Solid - White
-			Data:  []float64{1, 1, 1, 1},
+			Truth: data.T{1.0, 0.0, 0.0, 0.0}, // Solid - White
+			Data:  data.D{1.0, 1.0, 1.0, 1.0},
 		},
 		{
-			Truth: []float64{1.0, 0.0, 0.0, 0.0}, // Solid - Black
-			Data:  []float64{-1, -1, -1, -1},
+			Truth: data.T{1.0, 0.0, 0.0, 0.0}, // Solid - Black
+			Data:  data.D{-1.0, -1.0, -1.0, -1.0},
 		},
 		{
-			Truth: []float64{0.0, 1.0, 0.0, 0.0}, // Vertical - White Left
-			Data:  []float64{1, -1, -1, 1},
+			Truth: data.T{0.0, 1.0, 0.0, 0.0}, // Vertical - White Left
+			Data:  data.D{1.0, -1.0, -1.0, 1.0},
 		},
 		{
-			Truth: []float64{0.0, 1.0, 0.0, 0.0}, // Vertical - Black Left
-			Data:  []float64{-1, 1, 1, -1},
+			Truth: data.T{0.0, 1.0, 0.0, 0.0}, // Vertical - Black Left
+			Data:  data.D{-1.0, 1.0, 1.0, -1.0},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 1.0, 0.0}, // Diagonal - White Forward
-			Data:  []float64{1, -1, 1, -1},
+			Truth: data.T{0.0, 0.0, 1.0, 0.0}, // Diagonal - White Forward
+			Data:  data.D{1.0, -1.0, 1.0, -1.0},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 1.0, 0.0}, // Diagonal - Black Forward
-			Data:  []float64{-1, 1, -1, 1},
+			Truth: data.T{0.0, 0.0, 1.0, 0.0}, // Diagonal - Black Forward
+			Data:  data.D{-1.0, 1.0, -1.0, 1.0},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 0.0, 1.0}, // Horizontal - White Top
-			Data:  []float64{1, 1, -1, -1},
+			Truth: data.T{0.0, 0.0, 0.0, 1.0}, // Horizontal - White Top
+			Data:  data.D{1.0, 1.0, -1.0, -1.0},
 		},
 		{
-			Truth: []float64{0.0, 0.0, 0.0, 1.0}, // Horizontal - Black Top
-			Data:  []float64{-1, -1, 1, 1},
+			Truth: data.T{0.0, 0.0, 0.0, 1.0}, // Horizontal - Black Top
+			Data:  data.D{-1.0, -1.0, 1.0, 1.0},
 		},
 	})
 
-	nw.Predict([]float64{1, -1, 1, -1}) // Diagonal - White Forward
+	nw.Predict(data.D{1, -1, 1, -1}) // Diagonal - White Forward
 
 	fmt.Println(nw.GetResults())
 }

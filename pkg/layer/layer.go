@@ -2,6 +2,7 @@ package layer
 
 import (
 	"jnet/pkg/connection"
+	"jnet/pkg/data"
 	"jnet/pkg/neuron"
 )
 
@@ -16,7 +17,7 @@ func New(qn int, t string) (nl *Layer) {
 	return &l
 }
 
-func (l *Layer) SetInputNeuronValues(values []float64) (this *Layer) {
+func (l *Layer) SetInputNeuronValues(values data.D) (this *Layer) {
 	if len(*l) != len(values) {
 		panic("Invalid number of inputs provided, does no match number of input neurons.")
 	}
@@ -29,7 +30,7 @@ func (l *Layer) SetInputNeuronValues(values []float64) (this *Layer) {
 	return l
 }
 
-func (l *Layer) SetInputNeuronValue(ni int, v float64) (this *Layer) {
+func (l *Layer) SetInputNeuronValue(ni int, v data.V) (this *Layer) {
 	(*l)[ni].Value = v
 
 	return l
@@ -46,7 +47,9 @@ func (l *Layer) SetConnectionWeights(cm connection.Map) (this *Layer) {
 }
 
 func (l *Layer) SetConnectionWeight(cm connection.Connection) (this *Layer) {
-	(*l)[(int)(cm[connection.IndexFrom])].Connections[(int)(cm[connection.IndexTo])][connection.IndexWeight] = cm[connection.IndexWeight]
+	ni, ci, w := int(cm[connection.IndexFrom]), int(cm[connection.IndexTo]), cm[connection.IndexWeight]
+
+	(*l)[ni].Connections[ci][connection.IndexWeight] = w
 
 	return l
 }
