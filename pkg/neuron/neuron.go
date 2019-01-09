@@ -10,6 +10,11 @@ const (
 	TypeInput               = "input"
 	TypeSigmoid             = "sigmoid"
 	TypeRectifiedLinearUnit = "rectifiedLinearUnit"
+	TypeTwoTimes            = "twoTimes"
+	TypeExp                 = "exp"
+	TypeOnePlus             = "onePlus"
+	TypeInverse             = "inverse"
+	TypeNegate              = "negate"
 	TypeOutput              = "output"
 )
 
@@ -40,6 +45,21 @@ func New(t string) (nn *Neuron) {
 	case TypeRectifiedLinearUnit:
 		nt = rectifiedLinearUnit
 		nat = dRectifiedLinearUnit
+	case TypeTwoTimes:
+		nt = twoTimes
+		nat = dTwoTimes
+	case TypeExp:
+		nt = exp
+		nat = dExp
+	case TypeOnePlus:
+		nt = onePlus
+		nat = dOnePlus
+	case TypeInverse:
+		nt = inverse
+		nat = dInverse
+	case TypeNegate:
+		nt = negate
+		nat = dNegate
 	case TypeOutput:
 		nt = passThrough
 		nat = dPassThrough

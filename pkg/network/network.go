@@ -358,6 +358,9 @@ func (nw *Network) backwardPass() (this *Network) {
 			for ci := 0; ci < qc; ci++ { // For every connection from this neuron...
 				c := &n.Connections[ci]
 
+				// TODO: This may be wrong...
+				// TODO: This is certainly wrong, multiplying by your data.V will causes issues when data.V tends to pool around 0.
+				// TODO: Delta rule is: New Weight = Old Weight - Derivative Rate * Learning Rate
 				c[connection.IndexWeight] -= data.V(n.LossGradientSum) * LearningRate
 			}
 		}
