@@ -171,6 +171,17 @@ func (nw *Network) forwardPass(input data.D) (this *Network) {
 	nw.Layers[0].SetInputNeuronValues(input)
 
 	qn := len(nw.Layers)
+	for li := 0; li < qn; li++ { // For every layer...
+		l := nw.Layers[li]
+
+		qn := len(l)
+		for ni := 0; ni < qn; ni++ { // For every neuron in the current layer...
+			n := &l[ni]
+
+			n.StageForPass()
+		}
+	}
+
 	for li := 1; li < qn; li++ { // For every layer except the first, starting from the second...
 		l, pli := nw.Layers[li], li-1
 		pl := nw.Layers[pli]
@@ -179,8 +190,6 @@ func (nw *Network) forwardPass(input data.D) (this *Network) {
 		for ni := 0; ni < qn; ni++ { // For every neuron in the current layer...
 			n := &l[ni]
 
-			n.StageForPass()
-
 			qpln := len(pl)
 			for plni := 0; plni < qpln; plni++ { // For every neuron in the previous layer...
 				pn := &pl[plni]
@@ -188,7 +197,7 @@ func (nw *Network) forwardPass(input data.D) (this *Network) {
 				n.Sum += pn.Value * data.V((&nw.Layers[pli][plni].Connections[ni])[connection.IndexWeight])
 			}
 
-			n.Value = n.Transform(n.Sum)
+			n.Value = data.V(n.Transform(float64(n.Sum)))
 
 			/*
 				y = sin(a * b + c * d)
@@ -260,7 +269,7 @@ func (nw *Network) forwardPass(input data.D) (this *Network) {
 			for plni := 0; plni < qpln; plni++ { // For every neuron in the previous layer...
 				pn := &pl[plni]
 
-				lg := data.Gradient(n.AntiTransorm(n.Sum) * pn.Value)
+				lg := data.Gradient(data.V(n.AntiTransorm(float64(n.Sum))) * pn.Value)
 				n.LocalGradients = append(n.LocalGradients, lg)
 			}
 		}

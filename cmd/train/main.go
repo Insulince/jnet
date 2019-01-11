@@ -61,7 +61,7 @@ func main() {
 		},
 	})
 
-	nw.Predict(data.D{1, -1, 1, -1}) // Diagonal - White Forward
+	nw.Predict(data.D{1.0, -1.0, 1.0, -1.0}) // Diagonal - White Forward
 
 	fmt.Println(nw.GetResults())
 }

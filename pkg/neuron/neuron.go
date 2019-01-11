@@ -20,6 +20,7 @@ const (
 
 type Neuron struct {
 	*util.Logger
+	Type            string
 	Connections     []connection.Connection
 	Value           data.V
 	Sum             data.V
@@ -69,13 +70,16 @@ func New(t string) (nn *Neuron) {
 
 	return &Neuron{
 		Logger:       util.NewLogger("Neuron", util.DefaultPadding),
+		Type:         t,
 		Transform:    nt,
 		AntiTransorm: nat,
 	}
 }
 
 func (n *Neuron) StageForPass() {
-	n.Value = 0.0
+	if n.Type != TypeInput {
+		n.Value = 0.0
+	}
 	n.Sum = 0.0
 	n.LossGradients = []data.Gradient{}
 	n.LossGradientSum = 0.0
