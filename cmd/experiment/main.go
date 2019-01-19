@@ -2,51 +2,36 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"math/rand"
-	"os"
-	"time"
+	"jnet/pkg/jnet"
 )
 
+func init() {
+	//rand.Seed(time.Now().Unix())
+}
+
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano())
+	nw := jnet.NewNetwork(1, 1, 1, 1, 1, 1)
 
-	t := func(x float64) (y float64) {
-		return 2*math.Pow(x, 4) + 17*math.Pow(x, 3) - 13*math.Pow(x, 2) + 7*x - 53
-	}
+	nw.Layers[1].Neurons[0].Connections[0].Weight = 0.25
+	nw.Layers[1].Neurons[0].Bias = 0.0
+	nw.Layers[2].Neurons[0].Connections[0].Weight = 0.75
+	nw.Layers[2].Neurons[0].Bias = 0.7
+	nw.Layers[3].Neurons[0].Connections[0].Weight = 1.0
+	nw.Layers[3].Neurons[0].Bias = 1.0
+	nw.Layers[4].Neurons[0].Connections[0].Weight = 0.1
+	nw.Layers[4].Neurons[0].Bias = 0.2
+	nw.Layers[5].Neurons[0].Connections[0].Weight = 0.4
+	nw.Layers[5].Neurons[0].Bias = 2.0
 
-	dt := func(x float64) (y float64) {
-		return 8*math.Pow(x, 3) + 51*math.Pow(x, 2) - 26*x + 7
-	}
+	nw.Predict([]float64{1.0})
+	nw.CalculateLoss([]float64{1.0})
 
-	const Amplitude = 10
-	const Iterations = 1000
-	const LearningRate = 0.001
-	const CutOff = 1.0e-12
-
-	x := rand.Float64() * Amplitude
-
-	c := 0
-	for i := 0; i < Iterations; i++ {
-		tv, dtv := t(x), dt(x)
-
-		if dtv > 0.0 {
-			x -= dtv * LearningRate
-		} else if dtv < 0.0 {
-			x += dtv * LearningRate
-		}
-
-		fmt.Printf("%22v - %22v - %22v\n", x, tv, dtv)
-
-		c++
-
-		if math.Abs(dtv) < CutOff {
-			fmt.Println("Sufficiently minimized, breaking...")
-			break
-		}
-	}
-
-	fmt.Printf("Minimum weight value is %v\nIterations: %v", x, c)
-
-	os.Exit(0)
+	fmt.Println(nw.Layers[0].Neurons[0].Value)
+	fmt.Println(nw.Layers[1].Neurons[0].Value)
+	fmt.Println(nw.Layers[2].Neurons[0].Value)
+	fmt.Println(nw.Layers[3].Neurons[0].Value)
+	fmt.Println(nw.Layers[4].Neurons[0].Value)
+	fmt.Println(nw.Layers[5].Neurons[0].Value)
+	fmt.Println()
+	fmt.Println(nw.Loss)
 }
