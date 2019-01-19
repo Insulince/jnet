@@ -14,6 +14,33 @@ type TrainingData struct {
 	Truth []float64
 }
 
+///////////////////////// HUMAN DATA /////////////////////////
+
+type HumanData struct {
+	Data  [][]float64
+	Truth []float64
+}
+
+func (hd *HumanData) ToTrainingData() (td *TrainingData) {
+	td = &TrainingData{}
+
+	qdr := len(hd.Data)
+	for dri := 0; dri < qdr; dri++ {
+		dr := hd.Data[dri]
+
+		qd := len(dr)
+		for di := 0; di < qd; di++ {
+			datum := dr[di]
+
+			td.Data = append(td.Data, datum)
+		}
+	}
+
+	td.Truth = hd.Truth
+
+	return td
+}
+
 ///////////////////////// ACTIVATION FUNCTIONS /////////////////////////
 
 func sigmoid(x float64) (y float64) {
@@ -57,11 +84,13 @@ func NewNeuron(pl *Layer) (nn *Neuron) {
 		Bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
 	}
 
-	qpln := len(pl.Neurons)
-	for ni := 0; ni < qpln; ni++ { // For every neuron in the previous layer...
-		pln := pl.Neurons[ni]
+	if pl != nil {
+		qpln := len(pl.Neurons)
+		for ni := 0; ni < qpln; ni++ { // For every neuron in the previous layer...
+			pln := pl.Neurons[ni]
 
-		nn.Connections = append(nn.Connections, NewConnection(pln, nn))
+			nn.Connections = append(nn.Connections, NewConnection(pln, nn))
+		}
 	}
 
 	return nn
@@ -216,6 +245,8 @@ type Layer struct {
 }
 
 func NewLayer(qn int, pl *Layer) (nl *Layer) {
+	nl = &Layer{}
+
 	for i := 0; i < qn; i++ {
 		nl.Neurons = append(nl.Neurons, NewNeuron(pl))
 	}
@@ -403,6 +434,13 @@ func (nw *Network) forwardPass(input []float64) (this *Network) {
 func (nw *Network) Train(trainingData []TrainingData) (this *Network) {
 	fmt.Println("TRAINING START")
 
+	c := 0
+
+	totalAverageLoss := 0.0
+	averageAverageLoss := 0.0
+	minAverageLoss := float64(math.MaxInt32)
+	maxAverageLoss := float64(-math.MaxInt32)
+
 	// TODO: Stop this when sufficiently minimized.
 	for i := 0; i < nw.TrainingIterations; i++ { // For every desired training iteration...
 		// Shuffle current set of trainingData
@@ -431,11 +469,33 @@ func (nw *Network) Train(trainingData []TrainingData) (this *Network) {
 			nw.recordNudges()
 		}
 
-		//averageLoss := totalLoss / float64(nw.MiniBatchSize) // Get the average loss across the whole minibatch.
+		c++
+		averageLoss := totalLoss / float64(nw.MiniBatchSize) // Get the average loss across the whole minibatch.
+		fmt.Printf("%3f ", averageLoss)
+
+		totalAverageLoss += averageLoss
+		averageAverageLoss = totalAverageLoss / float64(i)
+		if averageLoss > maxAverageLoss {
+			maxAverageLoss = averageLoss
+		}
+		if averageLoss < minAverageLoss {
+			minAverageLoss = averageLoss
+		}
+
+		if c > 15 {
+			fmt.Printf(" | %5f %5f %5f\n", averageAverageLoss, minAverageLoss, maxAverageLoss)
+			c = 0
+		}
+
+		if averageAverageLoss < 0.1 {
+			break
+		}
+
 		nw.averageNudges()
 
 		nw.adjustWeights()
 	}
+	fmt.Println()
 
 	return nw
 }
@@ -551,4 +611,28 @@ func (nw *Network) CalculateLoss(truth []float64) (this *Network) {
 	} // C_0
 
 	return nw
+}
+
+func (nw *Network) GetResults() (results string) {
+	lli := len(nw.Layers) - 1
+	ll := nw.Layers[lli]
+
+	result := "Not Set"
+	maxVal := -float64(math.MaxInt32)
+
+	qlln := len(ll.Neurons)
+	for ni := 0; ni < qlln; ni++ {
+		n := ll.Neurons[ni]
+
+		results = fmt.Sprintf("%v%v: %v\n", results, ni, n.Value)
+
+		if n.Value > maxVal {
+			maxVal = n.Value
+			result = fmt.Sprintf("%v", ni)
+		}
+	}
+
+	results = fmt.Sprintf("%vResult: %v\n", results, result)
+
+	return results
 }

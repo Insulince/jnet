@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"jnet/pkg"
 	"jnet/pkg/jnet"
 )
 
@@ -10,18 +11,25 @@ func init() {
 }
 
 func main() {
-	nw := jnet.NewNetwork(1, 1, 1, 1)
+	nw := jnet.NewNetwork(25, 16, 16, 10)
 	nw.LearningRate = 0.01
-	nw.TrainingIterations = 50
-	nw.MiniBatchSize = 3
+	nw.TrainingIterations = 1000000
+	nw.MiniBatchSize = 30
 
-	nw.Predict([]float64{1.0})
-	nw.CalculateLoss([]float64{1.0})
+	nw.Train(pkg.TrainingData)
 
-	fmt.Println(nw.Layers[0].Neurons[0].Value)
-	fmt.Println(nw.Layers[1].Neurons[0].Value)
-	fmt.Println(nw.Layers[2].Neurons[0].Value)
-	fmt.Println(nw.Layers[3].Neurons[0].Value)
-	fmt.Println()
-	fmt.Println(nw.Loss)
+	hd := jnet.HumanData{
+		Data: [][]float64{
+			{1, 1, 1, 0, 0},
+			{1, 0, 0, 0, 0},
+			{1, 1, 1, 0, 0},
+			{0, 0, 1, 0, 0},
+			{1, 1, 1, 0, 0},
+		},
+	}
+	realData := hd.ToTrainingData().Data
+
+	nw.Predict(realData)
+
+	fmt.Println(nw.GetResults())
 }
