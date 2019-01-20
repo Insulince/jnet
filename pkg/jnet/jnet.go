@@ -67,18 +67,18 @@ func linear(x float64) (y float64) {
 ///////////////////////// NEURON /////////////////////////
 
 type Neuron struct {
-	Value       float64 // Bounded to (0.0, 1.0) (This is sigmoid(WSum + Bias))
-	WSum        float64 // Unbounded
-	Bias        float64 // Unbounded
+	Value       float64
+	WSum        float64
+	Bias        float64
 	Connections []*Connection
 
-	DcDa float64 // The effect this neuron's value has on the loss. <-
-	DcDb float64 // The effect this neuron's bias has on the loss. = DcDa * DaDz * DzDb = DcDa * DaDz <-
-	DaDz float64 // The effect this neuron's weighted sum + bias has on the neuron's value. ->
-	DzDb float64 // The effect this neuron's bias has on the weighted sum + bias. (Always = 1.0) ->
+	dLossDValue float64 // The effect this neuron's value has on the loss (Calculated in back prop).
+	dLossDBias  float64 // The effect this neuron's bias has on the loss (Calculated in back prop). = dLossDValue * dValueDNet * dNetDBias = dLossDValue * dValueDNet
+	dValueDNet  float64 // The effect this neuron's weighted sum + bias has on the neuron's value (Calculated in forward pass).
+	dNetDBias   float64 // The effect this neuron's bias has on the weighted sum + bias (Calculated in forward pass). (Always = 1.0)
 
-	NudgeDcDb   []float64
-	AverageDcDb float64
+	BiasNudges       []float64
+	AverageBiasNudge float64
 }
 
 func NewNeuron(pl *Layer) (nn *Neuron) {
@@ -104,10 +104,10 @@ func (n *Neuron) ResetForPass() (this *Neuron) {
 	n.Value = 0.0
 	n.WSum = 0.0
 
-	n.DcDa = 0.0
-	n.DcDb = 0.0
-	n.DaDz = 0.0
-	n.DzDb = 0.0
+	n.dLossDValue = 0.0
+	n.dLossDBias = 0.0
+	n.dValueDNet = 0.0
+	n.dNetDBias = 0.0
 
 	qc := len(n.Connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
@@ -122,8 +122,8 @@ func (n *Neuron) ResetForPass() (this *Neuron) {
 func (n *Neuron) ResetForMiniBatch() (this *Neuron) {
 	n.ResetForPass()
 
-	n.NudgeDcDb = []float64{}
-	n.AverageDcDb = 0.0
+	n.BiasNudges = []float64{}
+	n.AverageBiasNudge = 0.0
 
 	qc := len(n.Connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
@@ -136,7 +136,7 @@ func (n *Neuron) ResetForMiniBatch() (this *Neuron) {
 }
 
 func (n *Neuron) recordNudges() (this *Neuron) {
-	n.NudgeDcDb = append(n.NudgeDcDb, n.DcDb)
+	n.BiasNudges = append(n.BiasNudges, n.dLossDBias)
 
 	qc := len(n.Connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
@@ -150,11 +150,11 @@ func (n *Neuron) recordNudges() (this *Neuron) {
 
 func (n *Neuron) averageNudges() (this *Neuron) {
 	dcdbSum := 0.0
-	for _, dcdb := range n.NudgeDcDb {
+	for _, dcdb := range n.BiasNudges {
 		dcdbSum += dcdb
 	}
 
-	n.AverageDcDb = dcdbSum / float64(len(n.NudgeDcDb))
+	n.AverageBiasNudge = dcdbSum / float64(len(n.BiasNudges))
 
 	qc := len(n.Connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
@@ -167,7 +167,7 @@ func (n *Neuron) averageNudges() (this *Neuron) {
 }
 
 func (n *Neuron) adjustWeights(learningRate float64) (this *Neuron) {
-	n.Bias -= n.AverageDcDb * learningRate
+	n.Bias -= n.AverageBiasNudge * learningRate
 
 	qc := len(n.Connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
@@ -183,15 +183,15 @@ func (n *Neuron) adjustWeights(learningRate float64) (this *Neuron) {
 
 type Connection struct {
 	Left   *Neuron
-	Weight float64 // Unbounded
+	Weight float64
 	Right  *Neuron
 
-	DzDw  float64 // The effect this connection's weight has on the weighted sum + bias. ->
-	DcDw  float64 // The effect this connection's weight has on the loss. = DcDa * DaDz * DzDw <-
-	DzDa_ float64 // The effect this connection's left-neuron's activation has on the weighted sum + bias. ->
+	dNetDWeight    float64 // The effect this connection's weight has on the weighted sum + bias. ->
+	dLossDWeight   float64 // The effect this connection's weight has on the loss. = dLossDValue * dValueDNet * dNetDWeight <-
+	dNetDPrevValue float64 // The effect this connection's left-neuron's activation has on the weighted sum + bias. ->
 
-	NudgeDcDw   []float64
-	AverageDcDw float64
+	WeightNudges       []float64
+	AverageWeightNudge float64
 }
 
 func NewConnection(left *Neuron, right *Neuron) (c *Connection) {
@@ -203,9 +203,9 @@ func NewConnection(left *Neuron, right *Neuron) (c *Connection) {
 }
 
 func (c *Connection) ResetForPass() (this *Connection) {
-	c.DzDw = 0.0
-	c.DcDw = 0.0
-	c.DzDa_ = 0.0
+	c.dNetDWeight = 0.0
+	c.dLossDWeight = 0.0
+	c.dNetDPrevValue = 0.0
 
 	return c
 }
@@ -213,31 +213,31 @@ func (c *Connection) ResetForPass() (this *Connection) {
 func (c *Connection) resetForMiniBatch() (this *Connection) {
 	c.ResetForPass()
 
-	c.NudgeDcDw = []float64{}
-	c.AverageDcDw = 0.0
+	c.WeightNudges = []float64{}
+	c.AverageWeightNudge = 0.0
 
 	return c
 }
 
 func (c *Connection) recordNudges() (this *Connection) {
-	c.NudgeDcDw = append(c.NudgeDcDw, c.DcDw)
+	c.WeightNudges = append(c.WeightNudges, c.dLossDWeight)
 
 	return c
 }
 
 func (c *Connection) averageNudges() (this *Connection) {
 	dcdwSum := 0.0
-	for _, dcdw := range c.NudgeDcDw {
+	for _, dcdw := range c.WeightNudges {
 		dcdwSum += dcdw
 	}
 
-	c.AverageDcDw = dcdwSum / float64(len(c.NudgeDcDw))
+	c.AverageWeightNudge = dcdwSum / float64(len(c.WeightNudges))
 
 	return c
 }
 
 func (c *Connection) adjustWeights(learningRate float64) (this *Connection) {
-	c.Weight -= c.AverageDcDw * learningRate
+	c.Weight -= c.AverageWeightNudge * learningRate
 
 	return c
 }
@@ -413,17 +413,17 @@ func (nw *Network) forwardPass(input []float64) (this *Network) {
 
 			z := n.WSum + n.Bias // z_j^L
 			n.Value = sigmoid(z) // a_j^L
-			n.DaDz = calculus.Diff(sigmoid, z)
-			n.DzDb = 1.0
+			n.dValueDNet = calculus.Diff(sigmoid, z)
+			n.dNetDBias = 1.0
 
 			for ci := 0; ci < qc; ci++ { // For every connection this neuron has to the the previous layer...
 				c := n.Connections[ci]
 
-				c.DzDw = c.Left.Value
-				c.DzDa_ = c.Weight
+				c.dNetDWeight = c.Left.Value
+				c.dNetDPrevValue = c.Weight
 
 				//         vvvvvv - loss gradient
-				//c.DcDw = n.DcDa * n.DaDz * c.DzDw
+				//c.dLossDWeight = n.dLossDValue * n.dValueDNet * c.dNetDWeight
 				//   local gradient ^^^^^^^^^^^^^^^
 			}
 		}
@@ -508,27 +508,18 @@ func (nw *Network) Train(trainingData []TrainingData) (this *Network) {
 // BackwardPass runs the network backwards from the state its last forward pass left it in to determine the LossGradients of each neuron (by
 // comparing to the provided loss value, `loss`), and adjusts each neuron's weight based on it to make the network perform better.
 func (nw *Network) backwardPass(truth []float64) (this *Network) {
-	//dcda := 2 * (ln.Value - truth)
-	//dadz := calculus.Diff(sigmoid, ln.WSum+ln.Bias)
-	//dzdw := nw.Layers[len(nw.Layers)-1].Neurons[0].Connections[0].Left.Value
-	//dcdw := dcda * dadz * dzdw
-	//
-	//dzdb := 1.0
-	//dcdb := dcda * dadz * dzdb
-	//dcdb = dcda * dadz
-
 	ll := nw.Layers[len(nw.Layers)-1]
 	qlln := len(ll.Neurons)
 	for llni := 0; llni < qlln; llni++ { // For every neuron in the last layer...
 		lln := ll.Neurons[llni]
 
-		lln.DcDa = 2 * (lln.Value - truth[llni])  // d(MSE)
-		lln.DcDb = lln.DcDa * lln.DaDz * lln.DzDb // DzDb is always 1, so not really needed, but included for calculus reasons.
+		lln.dLossDValue = 2 * (lln.Value - truth[llni])                   // d(MSE)
+		lln.dLossDBias = lln.dLossDValue * lln.dValueDNet * lln.dNetDBias // dNetDBias is always 1, so not really needed, but included for calculus reasons.
 
 		qc := len(lln.Connections)
 		for ci := 0; ci < qc; ci++ { // For every connection from this layer to its previous layer's neurons...
 			c := lln.Connections[ci]
-			c.DcDw = lln.DcDa * lln.DaDz * c.DzDw
+			c.dLossDWeight = lln.dLossDValue * lln.dValueDNet * c.dNetDWeight
 		}
 	}
 
@@ -547,15 +538,15 @@ func (nw *Network) backwardPass(truth []float64) (this *Network) {
 			for nlni := 0; nlni < qnln; nlni++ { // For every neuron in the next layer...
 				nln := nl.Neurons[nlni]
 
-				n.DcDa += nln.DcDa * nln.DaDz * nln.Connections[ni].DzDa_
+				n.dLossDValue += nln.dLossDValue * nln.dValueDNet * nln.Connections[ni].dNetDPrevValue
 			}
 
-			n.DcDb = n.DcDa * n.DaDz * n.DzDb // DzDb is always 1, so not really needed, but included for calculus reasons.
+			n.dLossDBias = n.dLossDValue * n.dValueDNet * n.dNetDBias // dNetDBias is always 1, so not really needed, but included for calculus reasons.
 
 			qc := len(n.Connections)
 			for ci := 0; ci < qc; ci++ { // For every connection from this neuron to its previous layer's neurons...
 				c := n.Connections[ci]
-				c.DcDw = n.DcDa * n.DaDz * c.DzDw
+				c.dLossDWeight = n.dLossDValue * n.dValueDNet * c.dNetDWeight
 			}
 		}
 	}

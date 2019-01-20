@@ -73,55 +73,15 @@ func main() {
 		panic(err)
 	}
 	intermediateNwString := nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
-	nw, err = jnet.Deserialize(intermediateNwString)
-	if err != nil {
-		panic(err)
-	}
-	intermediateNwString = nw.Serialize()
 	fmt.Println(intermediateNwString == nwString)
 
 	hd := jnet.HumanData{
 		Data: [][]float64{
-			{1, 1, 1, 0, 0},
-			{0, 0, 1, 0, 0},
-			{0, 0, 1, 0, 0},
-			{0, 0, 1, 0, 0},
-			{0, 0, 1, 0, 0},
+			{0, 0, 0, 1, 0},
+			{0, 0, 0, 1, 0},
+			{0, 0, 0, 1, 0},
+			{0, 0, 0, 1, 0},
+			{0, 0, 0, 1, 0},
 		},
 	}
 	realData := hd.ToTrainingData().Data
