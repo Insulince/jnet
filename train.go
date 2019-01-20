@@ -1,8 +1,6 @@
-package pkg
+package jnet
 
-import "jnet/pkg/jnet"
-
-var humanData = []jnet.HumanData{
+var humanData = []HumanData{
 	// 0
 	{
 		Data: [][]float64{
@@ -335,10 +333,10 @@ var humanData = []jnet.HumanData{
 	},
 }
 
-var TrainingData []jnet.TrainingData
+var FiveByFiveTrainingData []TrainingData
 
 func init() {
 	for _, hd := range humanData {
-		TrainingData = append(TrainingData, *hd.ToTrainingData())
+		FiveByFiveTrainingData = append(FiveByFiveTrainingData, *hd.ToTrainingData())
 	}
 }

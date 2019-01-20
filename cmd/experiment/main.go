@@ -2,21 +2,19 @@ package main
 
 import (
 	"fmt"
-	"jnet/pkg"
-	"jnet/pkg/jnet"
+	"jnet"
+	"math/rand"
+	"time"
 )
 
 func init() {
-	//rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().Unix())
 }
 
 func main() {
 	nw := jnet.NewNetwork(25, 16, 16, 10)
-	nw.LearningRate = 0.1
-	nw.TrainingIterations = 2500000
-	nw.MiniBatchSize = 32
 
-	nw.Train(pkg.TrainingData)
+	nw.Train(jnet.FiveByFiveTrainingData, 0.1, 2500000, 32)
 
 	hd := jnet.HumanData{
 		Data: [][]float64{
