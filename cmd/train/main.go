@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"jnet"
+	"github.com/Insulince/jnet"
 	"math/rand"
 	"time"
 )
