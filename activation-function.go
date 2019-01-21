@@ -2,6 +2,15 @@ package jnet
 
 import "math"
 
+const (
+	ActivationSigmoid = iota
+	ActivationTanh
+	ActivationRelu
+	AcitvationLinear
+)
+
+type activationFunction func(x float64) (y float64)
+
 func sigmoid(x float64) (y float64) {
 	return 1 / (1 + math.Pow(math.E, -x))
 }

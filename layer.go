@@ -1,85 +1,85 @@
 package jnet
 
-type Layer struct {
-	Neurons []*Neuron
+type layer struct {
+	neurons []*neuron
 }
 
-func NewLayer(qn int, pl *Layer) (nl *Layer) {
-	nl = &Layer{}
+func newLayer(qn int, pl *layer) (nl *layer) {
+	nl = &layer{}
 
-	for i := 0; i < qn; i++ {
-		nl.Neurons = append(nl.Neurons, NewNeuron(pl))
+	for i := 0; i < qn; i++ { // For every desired neuron...
+		nl.neurons = append(nl.neurons, newNeuron(pl))
 	}
 	return nl
 }
 
-func (l *Layer) SetNeuronValues(values []float64) (this *Layer) {
-	qn := len(l.Neurons)
+func (l *layer) setNeuronValues(values []float64) {
+	qn := len(l.neurons)
 
 	if qn != len(values) {
 		panic("Invalid number of values provided, does no match number of neurons in layer.")
 	}
 
 	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-		l.Neurons[ni].Value = values[ni]
+		l.neurons[ni].value = values[ni]
 	}
-
-	return l
 }
 
-func (l *Layer) resetForPass() (this *Layer) {
-	qn := len(l.Neurons)
-	for ni := 0; ni < qn; ni++ {
-		n := l.Neurons[ni]
+func (l *layer) setNeuronLabels(labels []string) {
+	qn := len(l.neurons)
 
-		n.ResetForPass()
+	if qn != len(labels) {
+		panic("Invalid number of labels provided, does no match number of neurons in layer.")
 	}
 
-	return l
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
+		l.neurons[ni].label = labels[ni]
+	}
 }
 
-func (l *Layer) resetForMiniBatch() (this *Layer) {
+func (l *layer) resetForPass() {
+	qn := len(l.neurons)
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
+		n := l.neurons[ni]
+
+		n.resetForPass()
+	}
+}
+
+func (l *layer) resetForMiniBatch() {
 	l.resetForPass()
 
-	qn := len(l.Neurons)
-	for ni := 0; ni < qn; ni++ {
-		n := l.Neurons[ni]
+	qn := len(l.neurons)
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
+		n := l.neurons[ni]
 
-		n.ResetForMiniBatch()
+		n.resetForMiniBatch()
 	}
-
-	return l
 }
 
-func (l *Layer) recordNudges() (this *Layer) {
-	qn := len(l.Neurons)
+func (l *layer) recordNudges() {
+	qn := len(l.neurons)
 	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-		n := l.Neurons[ni]
+		n := l.neurons[ni]
 
-		n.recordNudges()
+		n.recordNudge()
 	}
-
-	return l
 }
 
-func (l *Layer) averageNudges() (this *Layer) {
-	qn := len(l.Neurons)
+func (l *layer) calculateAverageNudges() {
+	qn := len(l.neurons)
 	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-		n := l.Neurons[ni]
+		n := l.neurons[ni]
 
-		n.averageNudges()
+		n.calculateAverageNudge()
 	}
-
-	return l
 }
 
-func (l *Layer) adjustWeights(learningRate float64) (this *Layer) {
-	qn := len(l.Neurons)
+func (l *layer) adjustWeights(learningRate float64) {
+	qn := len(l.neurons)
 	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-		n := l.Neurons[ni]
+		n := l.neurons[ni]
 
 		n.adjustWeights(learningRate)
 	}
-
-	return l
 }

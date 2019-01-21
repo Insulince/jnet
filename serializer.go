@@ -1,17 +1,18 @@
 package jnet
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-func Deserialize(networkString string) (this *Network, err error) {
+func Deserialize(networkString string) (nw *Network, err error) {
 	var data [][]float64
 
 	lines := strings.Split(networkString, "\n")
 	ql := len(lines)
-	for li := 0; li < ql; li++ {
+	for li := 0; li < ql-1; li++ {
 		line := lines[li]
 
 		data = append(data, []float64{})
@@ -29,13 +30,15 @@ func Deserialize(networkString string) (this *Network, err error) {
 		}
 	}
 
+	ll := lines[ql-1]
+
 	lc := 0
 
 	// FIRST LINE
 	fl := data[0]
 
 	if len(fl) != 1 {
-		panic("Invalid version line!")
+		return nil, errors.New("Invalid version line!")
 	}
 
 	version := fl[0]
@@ -43,25 +46,26 @@ func Deserialize(networkString string) (this *Network, err error) {
 	lc++
 
 	if version != 1.0 {
-		panic("Invalid version number!")
+		return nil, errors.New("Invalid version number!")
 	}
 
 	// SECOND LINE
 	sl := data[1]
-	qnils := sl
+	nm := sl
 
 	lc++
 
 	// BIASES LINES
 	var biases [][]float64
-	for i := 1; i < len(qnils); i++ {
+	qnm := len(nm)
+	for i := 1; i < qnm; i++ {
 		biases = append(biases, []float64{})
 
 		line := data[lc]
 
-		qn := int(qnils[i])
+		qn := int(nm[i])
 		if len(line) != qn {
-			panic("Different number of biases than expected!")
+			return nil, errors.New("Different number of biases than expected!")
 		}
 
 		bi := i - 1
@@ -72,24 +76,18 @@ func Deserialize(networkString string) (this *Network, err error) {
 		lc++
 	}
 
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println()
-		}
-	}()
-
 	// WEIGHTS LINES
 	var weights [][][]float64
-	for i := 1; i < len(qnils); i++ {
+	for i := 1; i < qnm; i++ {
 		weights = append(weights, [][]float64{})
 
-		qn := int(qnils[i])
+		qn := int(nm[i])
 		for j := 0; j < qn; j++ {
 			weights[i-1] = append(weights[i-1], []float64{})
 
 			line := data[lc]
 
-			qpn := int(qnils[i-1])
+			qpn := int(nm[i-1])
 			for k := 0; k < qpn; k++ {
 				weights[i-1][j] = append(weights[i-1][j], line[k])
 			}
@@ -98,44 +96,66 @@ func Deserialize(networkString string) (this *Network, err error) {
 		}
 	}
 
-	fmt.Printf("%#v\n", qnils)
-	fmt.Printf("%#v\n", biases)
-	fmt.Printf("%#v\n", weights)
+	// LAST LINE
+	if lc != ql-1 {
+		panic("?")
+	}
+	labels := strings.Split(ll, " ")
 
+	return DeserializeF(nm, biases, weights, labels)
+}
+
+func DeserializeF(nm []float64, biases [][]float64, weights [][][]float64, labels []string) (nw *Network, err error) {
 	// CREATE NETWORK
-	nw := &Network{}
+	nw = &Network{}
 
 	// BUILD LAYERS & INITIAL CONNECTIONS
-	for i := 0; i < len(qnils); i++ {
+	qnm := len(nm)
+	for i := 0; i < qnm; i++ {
 		if i == 0 {
-			nw.Layers = append(nw.Layers, NewLayer(int(qnils[i]), nil))
+			nw.layers = append(nw.layers, newLayer(int(nm[i]), nil))
 		} else {
-			pl := nw.Layers[i-1]
-			nw.Layers = append(nw.Layers, NewLayer(int(qnils[i]), pl))
+			pl := nw.layers[i-1]
+			nw.layers = append(nw.layers, newLayer(int(nm[i]), pl))
 		}
 	}
 
 	// SETUP WEIGHTS AND BIASES
-	for li := 1; li < len(nw.Layers); li++ {
-		l := nw.Layers[li]
+	ql := len(nw.layers)
+	for li := 1; li < ql; li++ {
+		l := nw.layers[li]
 
 		// BIASES
-		for ni := 0; ni < len(l.Neurons); ni++ {
-			n := l.Neurons[ni]
+		qn := len(l.neurons)
+		for ni := 0; ni < qn; ni++ {
+			n := l.neurons[ni]
 
-			n.Bias = biases[li-1][ni]
+			n.bias = biases[li-1][ni]
 		}
 
 		// WEIGHTS
-		for ni := 0; ni < len(l.Neurons); ni++ {
-			n := l.Neurons[ni]
+		for ni := 0; ni < qn; ni++ {
+			n := l.neurons[ni]
 
-			for ci := 0; ci < len(n.Connections); ci++ {
-				c := n.Connections[ci]
+			qc := len(n.connections)
+			for ci := 0; ci < qc; ci++ {
+				c := n.connections[ci]
 
-				c.Weight = weights[li-1][ni][ci]
+				c.weight = weights[li-1][ni][ci]
 			}
 		}
+	}
+
+	// SETUP OUTPUT LABELS
+	qnl := len(labels)
+	if qnl != int(nm[qnm-1]) {
+		panic("Cannot deserialize, number of labels and output neurons do not match!")
+	}
+	ll := nw.layers[ql-1]
+	for nli := 0; nli < qnl; nli++ {
+		label := labels[nli]
+
+		ll.neurons[nli].label = label
 	}
 
 	return nw, nil
@@ -145,29 +165,30 @@ const SerializeVerion = "1.0"
 
 func (nw *Network) Serialize() (networkString string) {
 	/*
-		1.0
-		0.1 2500000 32
-		5 3 4
-		1 2 3
-		2 5 7 2
-		1 1 1 1 1
-		1 1 1 1 1
-		1 1 1 1 1
-		2 2 2
-		2 2 2
-		2 2 2
-		2 2 2
+			1.0
+			0.1 2500000 32
+			5 3 4
+			1 2 3
+			2 5 7 2
+			1 1 1 1 1
+			1 1 1 1 1
+			1 1 1 1 1
+			2 2 2
+			2 2 2
+			2 2 2
+			2 2 2
+		    0 1 2 3
 	*/
 
 	// FIRST LINE
 	networkString = fmt.Sprintf("%v\n", SerializeVerion)
 
 	// SECOND LINE
-	ql := len(nw.Layers)
+	ql := len(nw.layers)
 	for li := 0; li < ql; li++ {
-		l := nw.Layers[li]
+		l := nw.layers[li]
 
-		networkString += fmt.Sprintf("%v", len(l.Neurons))
+		networkString += fmt.Sprintf("%v", len(l.neurons))
 		if li < ql-1 {
 			networkString += " "
 		} else {
@@ -177,13 +198,13 @@ func (nw *Network) Serialize() (networkString string) {
 
 	// BIASES LINES
 	for li := 1; li < ql; li++ {
-		l := nw.Layers[li]
+		l := nw.layers[li]
 
-		qn := len(l.Neurons)
+		qn := len(l.neurons)
 		for ni := 0; ni < qn; ni++ {
-			n := l.Neurons[ni]
+			n := l.neurons[ni]
 
-			networkString += fmt.Sprintf("%v", n.Bias)
+			networkString += fmt.Sprintf("%v", n.bias)
 
 			if ni < qn-1 {
 				networkString += " "
@@ -195,26 +216,37 @@ func (nw *Network) Serialize() (networkString string) {
 
 	// WEIGHTS LINES
 	for li := 0; li < ql; li++ {
-		l := nw.Layers[li]
+		l := nw.layers[li]
 
-		qn := len(l.Neurons)
+		qn := len(l.neurons)
 		for ni := 0; ni < qn; ni++ {
-			n := l.Neurons[ni]
+			n := l.neurons[ni]
 
-			qc := len(n.Connections)
+			qc := len(n.connections)
 			for ci := 0; ci < qc; ci++ {
-				c := n.Connections[ci]
+				c := n.connections[ci]
 
-				networkString += fmt.Sprintf("%v", c.Weight)
+				networkString += fmt.Sprintf("%v", c.weight)
 
 				if ci < qc-1 {
 					networkString += " "
 				} else {
-					if li < ql-1 || ni < qn-1 { // The string should not end with a newline, so if this is the last neuron, don't use a new line.
-						networkString += "\n"
-					}
+					networkString += "\n"
 				}
 			}
+		}
+	}
+
+	// LAST LINE
+	lli := ql - 1
+	ll := nw.layers[lli]
+	qlln := len(ll.neurons)
+	for llni := 0; llni < qlln; llni++ {
+		lln := ll.neurons[llni]
+
+		networkString += lln.label
+		if llni < qlln-1 {
+			networkString += " "
 		}
 	}
 

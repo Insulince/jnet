@@ -2,115 +2,110 @@ package jnet
 
 import "math/rand"
 
-type Neuron struct {
-	Value       float64
-	WSum        float64
-	Bias        float64
-	Connections []*Connection
+type neuron struct {
+	value       float64
+	wSum        float64
+	bias        float64
+	connections []*connection
+	label       string
 
-	dLossDValue float64 // The effect this neuron's value has on the loss (Calculated in back prop).
-	dLossDBias  float64 // The effect this neuron's bias has on the loss (Calculated in back prop). = dLossDValue * dValueDNet * dNetDBias = dLossDValue * dValueDNet
-	dValueDNet  float64 // The effect this neuron's weighted sum + bias has on the neuron's value (Calculated in forward pass).
-	dNetDBias   float64 // The effect this neuron's bias has on the weighted sum + bias (Calculated in forward pass). (Always = 1.0)
+	dLossDValue float64 // The effect this neuron's value has on the loss.
+	dLossDBias  float64 // The effect this neuron's bias has on the loss.
+	dValueDNet  float64 // The effect this neuron's weighted sum + bias has on the neuron's value.
+	dNetDBias   float64 // The effect this neuron's bias has on the weighted sum + bias.
 
-	BiasNudges       []float64
-	AverageBiasNudge float64
+	biasNudges       []float64
+	averageBiasNudge float64
 }
 
-func NewNeuron(pl *Layer) (nn *Neuron) {
-	nn = &Neuron{
-		Bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
+func newNeuron(pl *layer) (nn *neuron) {
+	nn = &neuron{
+		bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
 	}
 
 	if pl != nil {
-		qpln := len(pl.Neurons)
+		qpln := len(pl.neurons)
 		for ni := 0; ni < qpln; ni++ { // For every neuron in the previous layer...
-			pln := pl.Neurons[ni]
+			pln := pl.neurons[ni]
 
-			nn.Connections = append(nn.Connections, NewConnection(pln, nn))
+			nn.connections = append(nn.connections, newConnection(pln, nn))
 		}
 	} else {
-		nn.Bias = 0.0 // This is an input neuron, so set the bias to 0.0 to minimize any confusion when debugging.
+		nn.bias = 0.0 // This is an input neuron, so set the bias to 0.0 to minimize any confusion when debugging.
 	}
 
 	return nn
 }
 
-func (n *Neuron) ResetForPass() (this *Neuron) {
-	n.Value = 0.0
-	n.WSum = 0.0
+func (n *neuron) resetForPass() {
+	n.value = 0.0
+	n.wSum = 0.0
 
 	n.dLossDValue = 0.0
 	n.dLossDBias = 0.0
 	n.dValueDNet = 0.0
 	n.dNetDBias = 0.0
 
-	qc := len(n.Connections)
+	qc := len(n.connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
+		c := n.connections[ci]
 
-		c.ResetForPass()
+		c.resetForPass()
 	}
-
-	return n
 }
 
-func (n *Neuron) ResetForMiniBatch() (this *Neuron) {
-	n.ResetForPass()
+func (n *neuron) resetForMiniBatch() {
+	n.resetForPass()
 
-	n.BiasNudges = []float64{}
-	n.AverageBiasNudge = 0.0
+	n.biasNudges = []float64{}
+	n.averageBiasNudge = 0.0
 
-	qc := len(n.Connections)
+	qc := len(n.connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
+		c := n.connections[ci]
 
 		c.resetForMiniBatch()
 	}
-
-	return n
 }
 
-func (n *Neuron) recordNudges() (this *Neuron) {
-	n.BiasNudges = append(n.BiasNudges, n.dLossDBias)
+func (n *neuron) recordNudge() {
+	n.biasNudges = append(n.biasNudges, n.dLossDBias)
 
-	qc := len(n.Connections)
+	qc := len(n.connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
+		c := n.connections[ci]
 
-		c.recordNudges()
+		c.recordNudge()
 	}
-
-	return n
 }
 
-func (n *Neuron) averageNudges() (this *Neuron) {
-	dcdbSum := 0.0
-	for _, dcdb := range n.BiasNudges {
-		dcdbSum += dcdb
+func (n *neuron) calculateAverageNudge() {
+	sum := 0.0
+
+	qbn := len(n.biasNudges)
+	for bni := 0; bni < qbn; bni++ { // For every bias nudge in this neuron...
+		bn := n.biasNudges[bni]
+
+		sum += bn
 	}
 
-	n.AverageBiasNudge = dcdbSum / float64(len(n.BiasNudges))
+	n.averageBiasNudge = sum / float64(qbn)
 
-	qc := len(n.Connections)
+	qc := len(n.connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
+		c := n.connections[ci]
 
-		c.averageNudges()
+		c.calculateAverageNudge()
 	}
-
-	return n
 }
 
-func (n *Neuron) adjustWeights(learningRate float64) (this *Neuron) {
-	n.Bias -= n.AverageBiasNudge * learningRate
+func (n *neuron) adjustWeights(learningRate float64) {
+	n.bias -= n.averageBiasNudge * learningRate
 
-	qc := len(n.Connections)
+	qc := len(n.connections)
 	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
+		c := n.connections[ci]
 
-		c.adjustWeights(learningRate)
+		c.adjustWeight(learningRate)
 	}
-
-	return n
 }
