@@ -6,18 +6,6 @@ import (
 )
 
 func main() {
-	//	nwString := `1.0
-	//5 3 4
-	//1 2 3
-	//2 5 7 2
-	//1 1 1 1 1
-	//1 1 1 1 1
-	//1 1 1 1 1
-	//2 2 2
-	//2 2 2
-	//2 2 2
-	//2 2 2`
-
 	nwString := `1.0
 25 16 16 10
 -0.053001048976084944 -0.7118538441287886 0.051939962534287926 1.021286406319284 1.8572584606638363 0.3345375003162201 -2.6338697090046095 -0.9940750099379837 -0.5361997618700615 0.06191227024893082 1.3457245546990695 -1.3393215674402568 -0.1823310179128701 1.9899873544135402 -1.96666063025522 1.4026075535534364
@@ -74,7 +62,7 @@ func main() {
 	intermediateNwString := nw.Serialize()
 	fmt.Println(intermediateNwString == nwString)
 
-	hd := jnet.HumanData{
+	hd := jnet.HumanDatum{
 		Data: [][]float64{
 			{0, 0, 0, 1, 0},
 			{0, 0, 0, 1, 0},
@@ -83,7 +71,7 @@ func main() {
 			{0, 0, 0, 1, 0},
 		},
 	}
-	realData := hd.ToTrainingData().Data
+	realData := hd.ToTrainingDatum().Data
 
 	nw.Predict(realData)
 

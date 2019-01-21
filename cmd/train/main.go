@@ -12,7 +12,7 @@ func init() {
 }
 
 func main() {
-	var humanData = []jnet.HumanData{
+	var humanData = jnet.HumanData{
 		// 0
 		{
 			Data: [][]float64{
@@ -345,15 +345,11 @@ func main() {
 		},
 	}
 
-	var trainingData jnet.TrainingData
+	trainingData := humanData.ToTrainingData()
 
-	for _, hd := range humanData {
-		trainingData = append(trainingData, *hd.ToTrainingData())
-	}
-
-	qnils := []int{25, 16, 16, 10}
+	nm := []int{25, 16, 16, 10}
 	labels := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-	nw := jnet.NewNetwork(qnils, labels)
+	nw := jnet.NewNetwork(nm, labels)
 
 	trainConfig := jnet.TrainingConfiguration{
 		LearningRate:       0.1,
@@ -363,7 +359,7 @@ func main() {
 	}
 	nw.Train(trainingData, trainConfig)
 
-	hd := jnet.HumanData{
+	hd := jnet.HumanDatum{
 		Data: [][]float64{
 			{1, 1, 1, 0, 0},
 			{1, 0, 1, 0, 0},
@@ -372,7 +368,7 @@ func main() {
 			{1, 1, 1, 0, 0},
 		},
 	}
-	realData := hd.ToTrainingData().Data
+	realData := hd.ToTrainingDatum().Data
 
 	prediction := nw.Predict(realData)
 	fmt.Println(prediction)

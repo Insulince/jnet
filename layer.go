@@ -7,7 +7,7 @@ type layer struct {
 func newLayer(qn int, pl *layer) (nl *layer) {
 	nl = &layer{}
 
-	for i := 0; i < qn; i++ { // For every desired neuron...
+	for ni := 0; ni < qn; ni++ { // For every desired neuron...
 		nl.neurons = append(nl.neurons, newNeuron(pl))
 	}
 	return nl

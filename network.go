@@ -10,19 +10,19 @@ type Network struct {
 	layers []*layer
 }
 
-func NewNetwork(qnils []int, labels []string) (nnw *Network) {
+func NewNetwork(nm []int, labels []string) (nnw *Network) {
 	nnw = &Network{}
 
-	qqnils := len(qnils)
-	for qnili := 0; qnili < qqnils; qnili++ {
-		qnil := qnils[qnili]
+	qnm := len(nm)
+	for nmi := 0; nmi < qnm; nmi++ { // For every quantity of neurons in the neuron map...
+		qn := nm[nmi]
 		ql := len(nnw.layers)
 
 		var pl *layer = nil
 		if ql > 0 {
 			pl = nnw.layers[ql-1]
 		}
-		nnw.layers = append(nnw.layers, newLayer(qnil, pl))
+		nnw.layers = append(nnw.layers, newLayer(qn, pl))
 	}
 
 	ql := len(nnw.layers)
@@ -34,7 +34,7 @@ func NewNetwork(qnils []int, labels []string) (nnw *Network) {
 
 func (nw *Network) resetForPass() {
 	ql := len(nw.layers)
-	for li := 0; li < ql; li++ {
+	for li := 0; li < ql; li++ { // For every layer in the network...
 		l := nw.layers[li]
 
 		l.resetForPass()
@@ -45,7 +45,7 @@ func (nw *Network) resetForMiniBatch() {
 	nw.resetForPass()
 
 	ql := len(nw.layers)
-	for li := 0; li < ql; li++ {
+	for li := 0; li < ql; li++ { // For every layer in the network...
 		l := nw.layers[li]
 
 		l.resetForMiniBatch()
@@ -103,7 +103,7 @@ func (nw *Network) Train(trainingData TrainingData, trainConfig TrainingConfigur
 		totalMiniBatchLoss := 0.0
 
 		nw.resetForMiniBatch()
-		for mbi := 0; mbi < trainConfig.MiniBatchSize; mbi++ {
+		for mbi := 0; mbi < trainConfig.MiniBatchSize; mbi++ { // For every desired item to be in the minibatch...
 			td := &miniBatch[mbi]
 
 			nw.resetForPass()

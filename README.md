@@ -1,6 +1,6 @@
-# JNet
+# jnet
 
-TODO
+A Go library for creating, training, and using multilayer perceptron neural networks.
 
 ## Installation
 
@@ -50,6 +50,16 @@ func main() () {
 
 The main limitations of this example is that we would need more training data and a larger network to do anything worth while. For a better example, take a look at [cmd/train/main.go](https://github.com/Insulince/jnet/blob/master/cmd/train/main.go) to see how a more realistic network is trained to read a 5 by 5 pixel grid of numbers.
 
-## Goals
+## Goals/TODO
 
-TODO
+ - [x] Serialize and Deserialize networks to and from strings
+ - [ ] Documentation (lol)
+ - [ ] Store and Read networks from file.
+ - [ ] Command Line Interface
+
+## Inspiration and Thanks
+
+- 3blue1brown's series on [Neural Networks](https://www.youtube.com/watch?v=aircAruvnKk)
+- Brandon Rohrer's [How Deep Neural Networks Work](https://www.youtube.com/watch?v=ILsA4nyG7I0)
+- Andrej Karpathy's lectures, specifically [CS231n Winter 2016: Lecture 4: Backpropagation, Neural Networks 1](https://www.youtube.com/watch?v=i94OvYb6noo)
+- Numerous Medium articles
