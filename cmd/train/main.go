@@ -345,7 +345,7 @@ func main() {
 		},
 	}
 
-	var trainingData []jnet.TrainingDatum
+	var trainingData jnet.TrainingData
 
 	for _, hd := range humanData {
 		trainingData = append(trainingData, *hd.ToTrainingData())
