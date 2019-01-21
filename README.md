@@ -26,23 +26,23 @@ func main() () {
 	neurons := []int{5, 3, 3, 3}
 	labels := []string{"apple", "banana", "orange"}
 	nw := jnet.NewNetwork(neurons, labels)
-	
+
 	trainingData := jnet.TrainingData{
 		{
-            Data: []float64{0, 0, 1, 0, 1},
-            Truth: []float64{0, 0, 1},
-        },
+			Data:  []float64{0, 0, 1, 0, 1},
+			Truth: []float64{0, 0, 1},
+		},
 	}
-	
+
 	trainConfig := jnet.TrainingConfiguration{
-			LearningRate:       0.01,
-        	TrainingIterations: 100000,
-        	MiniBatchSize:      1,
-        	AverageLossCutoff:  0.1,
+		LearningRate:       0.01,
+		TrainingIterations: 100000,
+		MiniBatchSize:      1,
+		AverageLossCutoff:  0.1,
 	}
-	
-    nw.Train(trainingData, trainConfig)
-	
+
+	nw.Train(trainingData, trainConfig)
+
 	input := []float64{0, 0, 1, 0, 1}
 	fmt.Println(nw.Predict(input))
 }
