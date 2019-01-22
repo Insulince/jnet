@@ -56,6 +56,10 @@ The main limitations of this example is that we would need more training data an
  - [ ] Documentation (lol)
  - [ ] Store and Read networks from file.
  - [ ] Command Line Interface
+ - [ ] Verbose & Silent mode
+ - [ ] Allow different activation functions
+ - [ ] Expose statistics about network in Public API
+ - [ ] Stabilize Library (no panics for misconfiguration or silly mistakes)
 
 ## Inspiration and Thanks
 
