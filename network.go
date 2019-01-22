@@ -126,7 +126,7 @@ func (nw *Network) Train(trainingData TrainingData, trainConfig TrainingConfigur
 			minMiniBatchLoss = miniBatchLoss
 		}
 		if (ti+1)%15 == 0 {
-			fmt.Printf(" | %5f %5f %5f\n", averageLoss, minMiniBatchLoss, maxMiniBatchLoss)
+			fmt.Printf(" | %5f %5f %5f - %v\n", averageLoss, minMiniBatchLoss, maxMiniBatchLoss, ti)
 		}
 
 		if averageLoss < trainConfig.AverageLossCutoff {
