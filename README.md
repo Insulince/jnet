@@ -59,7 +59,7 @@ The main limitations of this example is that we would need more training data an
  - [ ] Verbose & Silent mode
  - [ ] Allow different activation functions
  - [ ] Expose statistics about network in Public API
- - [ ] Stabilize Library (no panics for misconfiguration or silly mistakes)
+ - [x] Stabilize Library (no panics for misconfiguration or silly mistakes)
 
 ## Inspiration and Thanks
 

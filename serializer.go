@@ -7,25 +7,28 @@ import (
 	"strings"
 )
 
-func Deserialize(networkString string) (nw *Network, err error) {
-	defer func() {
-		if pval := recover(); pval != nil {
-			nw = nil
-
-			perr, ok := pval.(error)
-			if !ok {
-				err = errors.New("Unknown error occurred.")
-				return
-			}
-			err = perr
-		}
-	}()
-
-	nm, biases, weights, labels := extractData(networkString)
-	return dataToNetwork(nm, biases, weights, labels)
+type deserializationData struct {
+	neuronMap []float64
+	biases    [][]float64
+	weights   [][][]float64
+	labels    []string
 }
 
-func extractData(networkString string) (nm []float64, biases [][]float64, weights [][][]float64, labels []string) {
+func Deserialize(networkString string) (nw *Network, err error) {
+	dd, err := extractData(networkString)
+	if err != nil {
+		return nil, err
+	}
+	nw, err = dataToNetwork(dd)
+	if err != nil {
+		return nil, err
+	}
+	return nw, nil
+}
+
+func extractData(networkString string) (dd *deserializationData, err error) {
+	dd = &deserializationData{}
+
 	var data [][]float64
 
 	lines := strings.Split(networkString, "\n")
@@ -42,7 +45,7 @@ func extractData(networkString string) (nm []float64, biases [][]float64, weight
 
 			value, err := strconv.ParseFloat(item, 64)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 			data[li] = append(data[li], value)
 		}
@@ -56,7 +59,7 @@ func extractData(networkString string) (nm []float64, biases [][]float64, weight
 	fl := data[0]
 
 	if len(fl) != 1 {
-		panic(errors.New("Invalid version line!"))
+		return nil, errors.New("invalid version line")
 	}
 
 	version := fl[0]
@@ -64,30 +67,30 @@ func extractData(networkString string) (nm []float64, biases [][]float64, weight
 	lc++
 
 	if version != 1.0 {
-		panic(errors.New("Invalid version number!"))
+		return nil, errors.New("invalid version number")
 	}
 
 	// SECOND LINE
 	sl := data[1]
-	nm = sl
+	dd.neuronMap = sl
 
 	lc++
 
 	// BIASES LINES
-	qnm := len(nm)
+	qnm := len(dd.neuronMap)
 	for nmi := 1; nmi < qnm; nmi++ { // For every quantity of neurons in the neuron map...
-		biases = append(biases, []float64{})
+		dd.biases = append(dd.biases, []float64{})
 
 		line := data[lc]
 
-		qn := int(nm[nmi])
+		qn := int(dd.neuronMap[nmi])
 		if len(line) != qn {
-			panic(errors.New("Different number of biases than expected!"))
+			return nil, errors.New("different number of biases than expected")
 		}
 
 		bi := nmi - 1
 		for ni := 0; ni < qn; ni++ { // For every desired neuron in this layer...
-			biases[bi] = append(biases[bi], line[ni])
+			dd.biases[bi] = append(dd.biases[bi], line[ni])
 		}
 
 		lc++
@@ -95,17 +98,17 @@ func extractData(networkString string) (nm []float64, biases [][]float64, weight
 
 	// WEIGHTS LINES
 	for nmi := 1; nmi < qnm; nmi++ { // For every quantity of neurons in the neuron map...
-		weights = append(weights, [][]float64{})
+		dd.weights = append(dd.weights, [][]float64{})
 
-		qn := int(nm[nmi])
+		qn := int(dd.neuronMap[nmi])
 		for ni := 0; ni < qn; ni++ { // For every desired neuron in this layer...
-			weights[nmi-1] = append(weights[nmi-1], []float64{})
+			dd.weights[nmi-1] = append(dd.weights[nmi-1], []float64{})
 
 			line := data[lc]
 
-			qpn := int(nm[nmi-1])
+			qpn := int(dd.neuronMap[nmi-1])
 			for pni := 0; pni < qpn; pni++ { // For every desired neuron in the previous layer...
-				weights[nmi-1][ni] = append(weights[nmi-1][ni], line[pni])
+				dd.weights[nmi-1][ni] = append(dd.weights[nmi-1][ni], line[pni])
 			}
 
 			lc++
@@ -114,21 +117,21 @@ func extractData(networkString string) (nm []float64, biases [][]float64, weight
 
 	// LAST LINE
 	if lc != ql-1 {
-		panic("?")
+		return nil, errors.New("invalid number of lines in network string")
 	}
-	labels = strings.Split(ll, " ")
+	dd.labels = strings.Split(ll, " ")
 
-	return nm, biases, weights, labels
+	return dd, nil
 }
 
-func dataToNetwork(nm []float64, biases [][]float64, weights [][][]float64, labels []string) (nw *Network, err error) {
+func dataToNetwork(dd *deserializationData) (nw *Network, err error) {
 	// CREATE NETWORK
 	nw = &Network{}
 
 	// BUILD LAYERS & INITIAL CONNECTIONS
-	qnm := len(nm)
+	qnm := len(dd.neuronMap)
 	for nmi := 0; nmi < qnm; nmi++ { // For every quantity of neuron in the neuron map...
-		qn := nm[nmi]
+		qn := dd.neuronMap[nmi]
 
 		if nmi == 0 {
 			nw.layers = append(nw.layers, newLayer(int(qn), nil))
@@ -148,7 +151,7 @@ func dataToNetwork(nm []float64, biases [][]float64, weights [][][]float64, labe
 		for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
 			n := l.neurons[ni]
 
-			n.bias = biases[li-1][ni]
+			n.bias = dd.biases[li-1][ni]
 		}
 
 		// WEIGHTS
@@ -159,19 +162,19 @@ func dataToNetwork(nm []float64, biases [][]float64, weights [][][]float64, labe
 			for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer...
 				c := n.connections[ci]
 
-				c.weight = weights[li-1][ni][ci]
+				c.weight = dd.weights[li-1][ni][ci]
 			}
 		}
 	}
 
 	// SETUP OUTPUT LABELS
-	qnl := len(labels)
-	if qnl != int(nm[qnm-1]) {
-		panic("Cannot deserialize, number of labels and output neurons do not match!")
+	qnl := len(dd.labels)
+	if qnl != int(dd.neuronMap[qnm-1]) {
+		return nil, errors.New("cannot deserialize, number of labels and output neurons do not match")
 	}
 	ll := nw.layers[ql-1]
 	for nli := 0; nli < qnl; nli++ { // For every output label...
-		label := labels[nli]
+		label := dd.labels[nli]
 
 		ll.neurons[nli].label = label
 	}

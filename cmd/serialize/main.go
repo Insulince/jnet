@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/Insulince/jnet"
+	"log"
 )
 
 func main() {
@@ -57,7 +58,7 @@ func main() {
 
 	nw, err := jnet.Deserialize(nwString)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	intermediateNwString := nw.Serialize()
 	fmt.Println(intermediateNwString == nwString)
@@ -73,7 +74,9 @@ func main() {
 	}
 	realData := hd.ToTrainingDatum().Data
 
-	nw.Predict(realData)
-
-	fmt.Println(nw.GetResults())
+	prediction, err := nw.Predict(realData)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(prediction)
 }

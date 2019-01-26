@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/Insulince/jnet"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -349,7 +350,10 @@ func main() {
 
 	nm := []int{25, 16, 16, 10}
 	labels := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-	nw := jnet.NewNetwork(nm, labels)
+	nw, err := jnet.NewNetwork(nm, labels)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	trainConfig := jnet.TrainingConfiguration{
 		LearningRate:       0.1,
@@ -357,7 +361,10 @@ func main() {
 		MiniBatchSize:      32,
 		AverageLossCutoff:  0.5,
 	}
-	nw.Train(trainingData, trainConfig)
+	err = nw.Train(trainingData, trainConfig)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	hd := jnet.HumanDatum{
 		Data: [][]float64{
@@ -370,7 +377,9 @@ func main() {
 	}
 	realData := hd.ToTrainingDatum().Data
 
-	prediction := nw.Predict(realData)
+	prediction, err := nw.Predict(realData)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	fmt.Println(prediction)
-	fmt.Println()
 }

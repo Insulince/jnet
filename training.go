@@ -1,17 +1,20 @@
 package jnet
 
-import "math/rand"
+import (
+	"errors"
+	"math/rand"
+)
 
 type TrainingConfiguration struct {
-	LearningRate       float64
-	TrainingIterations int
-	MiniBatchSize      int
-	AverageLossCutoff  float64
+	LearningRate       float64 `json:"learningRate"`
+	TrainingIterations int     `json:"trainingIterations"`
+	MiniBatchSize      int     `json:"miniBatchSize"`
+	AverageLossCutoff  float64 `json:"averageLossCutoff"`
 }
 
 type TrainingDatum struct {
-	Data  []float64
-	Truth []float64
+	Data  []float64 `json:"data"`
+	Truth []float64 `json:"truth"`
 }
 
 type TrainingData []TrainingDatum
@@ -25,14 +28,14 @@ func (td *TrainingData) shuffle() {
 	}
 }
 
-func (td *TrainingData) miniBatch(miniBatchSize int) (mb TrainingData) {
+func (td *TrainingData) miniBatch(miniBatchSize int) (mb TrainingData, err error) {
 	if miniBatchSize > len(*td) {
-		panic("Requested mini batch size larger than number of training datums!")
+		return nil, errors.New("requested mini batch size larger than number of training datums")
 	}
 
 	td.shuffle()
 
-	return (*td)[0:miniBatchSize]
+	return (*td)[0:miniBatchSize], nil
 }
 
 type HumanDatum struct {

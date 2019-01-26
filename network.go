@@ -1,6 +1,7 @@
 package jnet
 
 import (
+	"errors"
 	"fmt"
 	"github.com/TheDemx27/calculus"
 	"math"
@@ -10,11 +11,11 @@ type Network struct {
 	layers []*layer
 }
 
-func NewNetwork(nm []int, labels []string) (nnw *Network) {
+func NewNetwork(nm []int, labels []string) (nnw *Network, err error) {
 	nnw = &Network{}
 
-	qnm := len(nm)
-	for nmi := 0; nmi < qnm; nmi++ { // For every quantity of neurons in the neuron map...
+	qqn := len(nm)
+	for nmi := 0; nmi < qqn; nmi++ { // For every quantity of neurons in the neuron map...
 		qn := nm[nmi]
 		ql := len(nnw.layers)
 
@@ -27,9 +28,12 @@ func NewNetwork(nm []int, labels []string) (nnw *Network) {
 
 	ql := len(nnw.layers)
 	lli := ql - 1
-	nnw.layers[lli].setNeuronLabels(labels)
+	err = nnw.layers[lli].setNeuronLabels(labels)
+	if err != nil {
+		return nil, err
+	}
 
-	return nnw
+	return nnw, nil
 }
 
 func (nw *Network) resetForPass() {
@@ -52,15 +56,21 @@ func (nw *Network) resetForMiniBatch() {
 	}
 }
 
-func (nw *Network) Predict(input []float64) (prediction string) {
+func (nw *Network) Predict(input []float64) (prediction string, err error) {
 	nw.resetForPass()
-	nw.forwardPass(input)
+	err = nw.forwardPass(input)
+	if err != nil {
+		return "", err
+	}
 
-	return fmt.Sprintf("Prediction: %v\n", nw.getHighestConfidenceNeuron().label)
+	return nw.getHighestConfidenceNeuron().label, nil
 }
 
-func (nw *Network) forwardPass(input []float64) {
-	nw.layers[0].setNeuronValues(input)
+func (nw *Network) forwardPass(input []float64) (err error) {
+	err = nw.layers[0].setNeuronValues(input)
+	if err != nil {
+		return err
+	}
 
 	ql := len(nw.layers)
 	for li := 1; li < ql; li++ { // For every layer except the first, starting from the second...
@@ -77,9 +87,9 @@ func (nw *Network) forwardPass(input []float64) {
 				n.wSum += c.left.value * c.weight
 			}
 
-			z := n.wSum + n.bias // z_j^L
-			n.value = sigmoid(z) // a_j^L
-			n.dValueDNet = calculus.Diff(sigmoid, z)
+			net := n.wSum + n.bias
+			n.value = sigmoid(net)
+			n.dValueDNet = calculus.Diff(sigmoid, net)
 			n.dNetDBias = 1.0
 
 			for ci := 0; ci < qc; ci++ { // For every connection this neuron has to the the previous layer...
@@ -90,15 +100,20 @@ func (nw *Network) forwardPass(input []float64) {
 			}
 		}
 	}
+
+	return nil
 }
 
-func (nw *Network) Train(trainingData TrainingData, trainConfig TrainingConfiguration) {
+func (nw *Network) Train(trainingData TrainingData, trainConfig TrainingConfiguration) (err error) {
 	fmt.Println("Starting training process...")
 
 	totalLoss, averageLoss, minMiniBatchLoss, maxMiniBatchLoss := 0.0, 0.0, float64(math.MaxInt32), float64(-math.MaxInt32)
 
 	for ti := 0; ti < trainConfig.TrainingIterations; ti++ { // For every desired training iteration...
-		miniBatch := trainingData.miniBatch(trainConfig.MiniBatchSize)
+		miniBatch, err := trainingData.miniBatch(trainConfig.MiniBatchSize)
+		if err != nil {
+			return err
+		}
 
 		totalMiniBatchLoss := 0.0
 
@@ -107,8 +122,15 @@ func (nw *Network) Train(trainingData TrainingData, trainConfig TrainingConfigur
 			td := &miniBatch[mbi]
 
 			nw.resetForPass()
-			nw.forwardPass(td.Data)
-			totalMiniBatchLoss += nw.calculateLoss(td.Truth)
+			err = nw.forwardPass(td.Data)
+			if err != nil {
+				return err
+			}
+			loss, err := nw.calculateLoss(td.Truth)
+			if err != nil {
+				return err
+			}
+			totalMiniBatchLoss += loss
 			nw.backwardPass(td.Truth)
 			nw.recordNudges()
 		}
@@ -139,6 +161,8 @@ func (nw *Network) Train(trainingData TrainingData, trainConfig TrainingConfigur
 	}
 
 	fmt.Println("Training process ended.")
+
+	return nil
 }
 
 func (nw *Network) backwardPass(truth []float64) {
@@ -147,7 +171,7 @@ func (nw *Network) backwardPass(truth []float64) {
 	for llni := 0; llni < qlln; llni++ { // For every neuron in the last layer...
 		lln := ll.neurons[llni]
 
-		lln.dLossDValue = 2 * (lln.value - truth[llni]) // d(MSE)
+		lln.dLossDValue = 2 * (lln.value - truth[llni])
 		lln.dLossDBias = lln.dLossDValue * lln.dValueDNet * lln.dNetDBias
 		qc := len(lln.connections)
 		for ci := 0; ci < qc; ci++ { // For every connection from this layer to its previous layer's neurons...
@@ -215,20 +239,20 @@ func (nw *Network) adjustWeights(learningRate float64) {
 	}
 }
 
-func (nw *Network) calculateLoss(truth []float64) (loss float64) {
+func (nw *Network) calculateLoss(truth []float64) (loss float64, err error) {
 	ll := nw.layers[len(nw.layers)-1]
 	qt, qn := len(truth), len(ll.neurons)
 
 	if qt != qn {
-		panic("Can't calculate loss, truth and output layer are of different lengths!")
+		return math.NaN(), errors.New("can't calculate loss, truth and output layer are of different lengths")
 	}
 
 	for ni := 0; ni < qn; ni++ { // For every neuron in the last layer...
 		n := ll.neurons[ni]
-		loss += math.Pow(n.value-truth[ni], 2) // MSE
+		loss += math.Pow(n.value-truth[ni], 2)
 	}
 
-	return loss
+	return loss, nil
 }
 
 func (nw *Network) getHighestConfidenceNeuron() (hcn *neuron) {
@@ -251,7 +275,7 @@ func (nw *Network) getHighestConfidenceNeuron() (hcn *neuron) {
 	return hcn
 }
 
-func (nw *Network) GetResults() (results string) {
+func (nw *Network) Statistics() (results string) {
 	lli := len(nw.layers) - 1
 	ll := nw.layers[lli]
 
@@ -264,5 +288,5 @@ func (nw *Network) GetResults() (results string) {
 
 	hcn := nw.getHighestConfidenceNeuron()
 
-	return fmt.Sprintf("%vResult: %v - %v\n", results, hcn.label, hcn.value)
+	return fmt.Sprintf("%Highest Confidence: %v - %v\n", results, hcn.label, hcn.value)
 }

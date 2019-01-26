@@ -7,9 +7,9 @@ type connection struct {
 	weight float64
 	right  *neuron
 
-	dNetDWeight    float64 // The effect this connection's weight has on the weighted sum + bias. ->
-	dLossDWeight   float64 // The effect this connection's weight has on the loss. = dLossDValue * dValueDNet * dNetDWeight <-
-	dNetDPrevValue float64 // The effect this connection's left-neuron's activation has on the weighted sum + bias. ->
+	dNetDWeight    float64 // The effect this connection's weight has on the weighted sum + bias.
+	dLossDWeight   float64 // The effect this connection's weight has on the loss.
+	dNetDPrevValue float64 // The effect this connection's left-neuron's activation has on the weighted sum + bias.
 
 	weightNudges       []float64
 	averageWeightNudge float64

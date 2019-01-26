@@ -1,5 +1,7 @@
 package jnet
 
+import "errors"
+
 type layer struct {
 	neurons []*neuron
 }
@@ -13,28 +15,32 @@ func newLayer(qn int, pl *layer) (nl *layer) {
 	return nl
 }
 
-func (l *layer) setNeuronValues(values []float64) {
+func (l *layer) setNeuronValues(values []float64) (err error) {
 	qn := len(l.neurons)
 
 	if qn != len(values) {
-		panic("Invalid number of values provided, does no match number of neurons in layer.")
+		return errors.New("invalid number of values provided, does no match number of neurons in layer")
 	}
 
 	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
 		l.neurons[ni].value = values[ni]
 	}
+
+	return nil
 }
 
-func (l *layer) setNeuronLabels(labels []string) {
+func (l *layer) setNeuronLabels(labels []string) (err error) {
 	qn := len(l.neurons)
 
 	if qn != len(labels) {
-		panic("Invalid number of labels provided, does no match number of neurons in layer.")
+		return errors.New("invalid number of labels provided, does no match number of neurons in layer")
 	}
 
 	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
 		l.neurons[ni].label = labels[ni]
 	}
+
+	return nil
 }
 
 func (l *layer) resetForPass() {
