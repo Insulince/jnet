@@ -44,15 +44,11 @@ solid vertical diagonal horizontal`)
 		log.Fatalln(err)
 	}
 
-	hd := jnet.HumanDatum{
-		Data: [][]float64{
-			{1, 0},
-			{0, 1},
-		},
+	input := []float64{
+		1, 0,
+		0, 1,
 	}
-	realData := hd.ToTrainingDatum().Data
-
-	prediction, err := nw.Predict(realData)
+	prediction, err := nw.Predict(input)
 	if err != nil {
 		log.Fatalln(err)
 	}

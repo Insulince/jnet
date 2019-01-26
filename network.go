@@ -19,7 +19,7 @@ func NewNetwork(nm []int, labels []string) (nnw *Network, err error) {
 		qn := nm[nmi]
 		ql := len(nnw.layers)
 
-		var pl *layer = nil
+		var pl *layer
 		if ql > 0 {
 			pl = nnw.layers[ql-1]
 		}

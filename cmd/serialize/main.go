@@ -63,18 +63,14 @@ func main() {
 	intermediateNwString := nw.Serialize()
 	fmt.Println(intermediateNwString == nwString)
 
-	hd := jnet.HumanDatum{
-		Data: [][]float64{
-			{0, 0, 0, 1, 0},
-			{0, 0, 0, 1, 0},
-			{0, 0, 0, 1, 0},
-			{0, 0, 0, 1, 0},
-			{0, 0, 0, 1, 0},
-		},
+	input := []float64{
+		0, 0, 0, 1, 0,
+		0, 0, 0, 1, 0,
+		0, 0, 0, 1, 0,
+		0, 0, 0, 1, 0,
+		0, 0, 0, 1, 0,
 	}
-	realData := hd.ToTrainingDatum().Data
-
-	prediction, err := nw.Predict(realData)
+	prediction, err := nw.Predict(input)
 	if err != nil {
 		log.Fatalln(err)
 	}
