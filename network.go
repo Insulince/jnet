@@ -3,7 +3,6 @@ package jnet
 import (
 	"errors"
 	"fmt"
-	"github.com/TheDemx27/calculus"
 	"math"
 )
 
@@ -17,12 +16,13 @@ func NewNetwork(nm []int, labels []string) (nnw *Network, err error) {
 	qqn := len(nm)
 	for nmi := 0; nmi < qqn; nmi++ { // For every quantity of neurons in the neuron map...
 		qn := nm[nmi]
-		ql := len(nnw.layers)
+		ql := nmi
 
-		var pl *layer
-		if ql > 0 {
-			pl = nnw.layers[ql-1]
+		if ql == 0 {
+			nnw.layers = append(nnw.layers, newLayer(qn, nil))
+			continue
 		}
+		pl := nnw.layers[ql-1]
 		nnw.layers = append(nnw.layers, newLayer(qn, pl))
 	}
 
@@ -67,7 +67,8 @@ func (nw *Network) Predict(input []float64) (prediction string, err error) {
 }
 
 func (nw *Network) forwardPass(input []float64) (err error) {
-	err = nw.layers[0].setNeuronValues(input)
+	fl := nw.layers[0]
+	err = fl.setNeuronValues(input)
 	if err != nil {
 		return err
 	}
