@@ -3,6 +3,7 @@ package jnet
 import (
 	"errors"
 	"fmt"
+	"github.com/TheDemx27/calculus"
 	"math"
 )
 
