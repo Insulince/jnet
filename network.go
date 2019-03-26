@@ -290,5 +290,5 @@ func (nw *Network) Statistics() (results string) {
 
 	hcn := nw.getHighestConfidenceNeuron()
 
-	return fmt.Sprintf("%Highest Confidence: %v - %v\n", results, hcn.label, hcn.value)
+	return fmt.Sprintf("%vHighest Confidence: %v - %v\n", results, hcn.label, hcn.value)
 }
