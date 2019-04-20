@@ -1,259 +1,252 @@
 package jnet
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
-type deserializationData struct {
-	neuronMap []float64
-	biases    [][]float64
-	weights   [][][]float64
-	labels    []string
+const (
+	SerializerVersion = "2.0.0"
+
+	separator = "|"
+
+	versionKey           = "VERSION"
+	neuronMapKey         = "NEURON_MAP"
+	biasesKey            = "BIASES"
+	weightsKey           = "WEIGHTS"
+	inputLabelsKey       = "INPUT_LABELS"
+	nameKey              = "NAME"
+	descriptionKey       = "DESCRIPTION"
+	timestampKey         = "TIMESTAMP"
+	outputLabelsKey      = "OUTPUT_LABELS"
+	predictionHistoryKey = "PREDICTION_HISTORY"
+	trainingHistoryKey   = "TRAINING_HISTORY"
+	logKey               = "LOG"
+
+	layerIdentifier  = "LAYER"
+	neuronIdentifier = "NEURON"
+
+	noDataIdentifier = "<no-data>"
+)
+
+// VERSION
+
+func serializeVersionLine() string {
+	return fmt.Sprintf("%v%v%v", versionKey, separator, SerializerVersion)
 }
 
-func Deserialize(networkString string) (nw *Network, err error) {
-	dd, err := extractData(networkString)
-	if err != nil {
-		return nil, err
+// NEURON MAP
+
+func serializeNeuronMapLine(layers []*layer) string {
+	var sizes []string
+	for _, l := range layers {
+		sizes = append(sizes, strconv.Itoa(len(l.neurons)))
 	}
-	nw, err = dataToNetwork(dd)
-	if err != nil {
-		return nil, err
-	}
-	return nw, nil
+	return fmt.Sprintf("%v%v%v", neuronMapKey, separator, strings.Join(sizes, separator))
 }
 
-func extractData(networkString string) (dd *deserializationData, err error) {
-	dd = &deserializationData{}
+// BIASES
 
-	var data [][]float64
-
-	lines := strings.Split(networkString, "\n")
-	ql := len(lines)
-	for li := 0; li < ql-1; li++ { // For every line in the network string...
-		line := lines[li]
-
-		data = append(data, []float64{})
-
-		items := strings.Split(line, " ")
-		qi := len(items)
-		for ii := 0; ii < qi; ii++ { // For every item in this line...
-			item := items[ii]
-
-			value, err := strconv.ParseFloat(item, 64)
-			if err != nil {
-				return nil, err
-			}
-			data[li] = append(data[li], value)
-		}
+func serializeBiasesLines(biasedLayers []*layer) string {
+	var biasesLines []string
+	for bli, bl := range biasedLayers {
+		biasesLines = append(biasesLines, serializeBiasLine(bli, bl))
 	}
-
-	ll := lines[ql-1]
-
-	lc := 0
-
-	// FIRST LINE
-	fl := data[0]
-
-	if len(fl) != 1 {
-		return nil, errors.New("invalid version line")
-	}
-
-	version := fl[0]
-
-	lc++
-
-	if version != 1.0 {
-		return nil, errors.New("invalid version number")
-	}
-
-	// SECOND LINE
-	sl := data[1]
-	dd.neuronMap = sl
-
-	lc++
-
-	// BIASES LINES
-	qnm := len(dd.neuronMap)
-	for nmi := 1; nmi < qnm; nmi++ { // For every quantity of neurons in the neuron map...
-		dd.biases = append(dd.biases, []float64{})
-
-		line := data[lc]
-
-		qn := int(dd.neuronMap[nmi])
-		if len(line) != qn {
-			return nil, errors.New("different number of biases than expected")
-		}
-
-		bi := nmi - 1
-		for ni := 0; ni < qn; ni++ { // For every desired neuron in this layer...
-			dd.biases[bi] = append(dd.biases[bi], line[ni])
-		}
-
-		lc++
-	}
-
-	// WEIGHTS LINES
-	for nmi := 1; nmi < qnm; nmi++ { // For every quantity of neurons in the neuron map...
-		dd.weights = append(dd.weights, [][]float64{})
-
-		qn := int(dd.neuronMap[nmi])
-		for ni := 0; ni < qn; ni++ { // For every desired neuron in this layer...
-			dd.weights[nmi-1] = append(dd.weights[nmi-1], []float64{})
-
-			line := data[lc]
-
-			qpn := int(dd.neuronMap[nmi-1])
-			for pni := 0; pni < qpn; pni++ { // For every desired neuron in the previous layer...
-				dd.weights[nmi-1][ni] = append(dd.weights[nmi-1][ni], line[pni])
-			}
-
-			lc++
-		}
-	}
-
-	// LAST LINE
-	if lc != ql-1 {
-		return nil, errors.New("invalid number of lines in network string")
-	}
-	dd.labels = strings.Split(ll, " ")
-
-	return dd, nil
+	return strings.Join(biasesLines, "\n")
 }
 
-func dataToNetwork(dd *deserializationData) (nw *Network, err error) {
-	// CREATE NETWORK
-	nw = &Network{}
-
-	// BUILD LAYERS & INITIAL CONNECTIONS
-	qnm := len(dd.neuronMap)
-	for nmi := 0; nmi < qnm; nmi++ { // For every quantity of neuron in the neuron map...
-		qn := dd.neuronMap[nmi]
-
-		if nmi == 0 {
-			nw.layers = append(nw.layers, newLayer(int(qn), nil))
-		} else {
-			pl := nw.layers[nmi-1]
-			nw.layers = append(nw.layers, newLayer(int(qn), pl))
-		}
+func serializeBiasLine(bli int, bl *layer) string {
+	var biases []string
+	for _, n := range bl.neurons {
+		biases = append(biases, fmt.Sprintf("%v", n.bias))
 	}
-
-	// SETUP WEIGHTS AND BIASES
-	ql := len(nw.layers)
-	for li := 1; li < ql; li++ { // For every layer in the network...
-		l := nw.layers[li]
-
-		// BIASES
-		qn := len(l.neurons)
-		for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-			n := l.neurons[ni]
-
-			n.bias = dd.biases[li-1][ni]
-		}
-
-		// WEIGHTS
-		for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-			n := l.neurons[ni]
-
-			qc := len(n.connections)
-			for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer...
-				c := n.connections[ci]
-
-				c.weight = dd.weights[li-1][ni][ci]
-			}
-		}
-	}
-
-	// SETUP OUTPUT LABELS
-	qnl := len(dd.labels)
-	if qnl != int(dd.neuronMap[qnm-1]) {
-		return nil, errors.New("cannot deserialize, number of labels and output neurons do not match")
-	}
-	ll := nw.layers[ql-1]
-	for nli := 0; nli < qnl; nli++ { // For every output label...
-		label := dd.labels[nli]
-
-		ll.neurons[nli].label = label
-	}
-
-	return nw, nil
+	return fmt.Sprintf("%v%v%v", generateBiasesLabel(bli), separator, strings.Join(biases, separator))
 }
 
-const SerializeVerion = "1.0"
+func generateBiasesLabel(bli int) string {
+	return fmt.Sprintf("%v_%v", biasesKey, generateLayerLabel(bli+1))
+}
 
-func (nw *Network) Serialize() (networkString string) {
-	// FIRST LINE
-	networkString = fmt.Sprintf("%v\n", SerializeVerion)
+// WEIGHTS
 
-	// SECOND LINE
-	ql := len(nw.layers)
-	for li := 0; li < ql; li++ { // For every layer in the network...
-		l := nw.layers[li]
-
-		networkString += fmt.Sprintf("%v", len(l.neurons))
-		if li < ql-1 {
-			networkString += " "
-		} else {
-			networkString += "\n"
-		}
+func serializeWeightsLines(weightedLayers []*layer) string {
+	var weightsLines []string
+	for wli, wl := range weightedLayers {
+		weightsLines = append(weightsLines, serializeWeightLinesPerLayer(wli, wl))
 	}
+	return strings.Join(weightsLines, "\n")
+}
 
-	// BIASES LINES
-	for li := 1; li < ql; li++ { // For every layer in the network...
-		l := nw.layers[li]
-
-		qn := len(l.neurons)
-		for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-			n := l.neurons[ni]
-
-			networkString += fmt.Sprintf("%v", n.bias)
-
-			if ni < qn-1 {
-				networkString += " "
-			} else {
-				networkString += "\n"
-			}
-		}
+func serializeWeightLinesPerLayer(wli int, wl *layer) string {
+	var weightLinesPerLayer []string
+	for ni, n := range wl.neurons {
+		weightLinesPerLayer = append(weightLinesPerLayer, serializeWeightLine(wli, n, ni))
 	}
+	return strings.Join(weightLinesPerLayer, "\n")
+}
 
-	// WEIGHTS LINES
-	for li := 0; li < ql; li++ { // For every layer in the network...
-		l := nw.layers[li]
-
-		qn := len(l.neurons)
-		for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
-			n := l.neurons[ni]
-
-			qc := len(n.connections)
-			for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer...
-				c := n.connections[ci]
-
-				networkString += fmt.Sprintf("%v", c.weight)
-
-				if ci < qc-1 {
-					networkString += " "
-				} else {
-					networkString += "\n"
-				}
-			}
-		}
+func serializeWeightLine(wli int, n *neuron, ni int) string {
+	var weights []string
+	for _, c := range n.connections {
+		weights = append(weights, fmt.Sprintf("%v", c.weight))
 	}
+	return fmt.Sprintf("%v%v%v", generateWeightsLabel(wli, ni), separator, strings.Join(weights, separator))
+}
 
-	// LAST LINE
-	lli := ql - 1
-	ll := nw.layers[lli]
-	qlln := len(ll.neurons)
-	for llni := 0; llni < qlln; llni++ { // For neuron in the last layer...
-		lln := ll.neurons[llni]
+func generateWeightsLabel(wli int, ni int) string {
+	return fmt.Sprintf("%v_%v_%v", weightsKey, generateLayerLabel(wli+1), generateNeuronLabel(ni))
+}
 
-		networkString += lln.label
-		if llni < qlln-1 {
-			networkString += " "
-		}
+// INPUT LABELS
+
+func serializeInputLabelsLine(fl *layer) string {
+	var inputLabels []string
+	for _, n := range fl.neurons {
+		inputLabels = append(inputLabels, n.label)
 	}
+	return fmt.Sprintf("%v%v%v", inputLabelsKey, separator, strings.Join(inputLabels, separator))
+}
 
-	return networkString
+// OUTPUT LABELS
+
+func serializeOutputLabelsLine(ll *layer) string {
+	var outputLabels []string
+	for _, n := range ll.neurons {
+		outputLabels = append(outputLabels, n.label)
+	}
+	return fmt.Sprintf("%v%v%v", outputLabelsKey, separator, strings.Join(outputLabels, separator))
+}
+
+// NAME
+
+func serializeNameLine(name string) string {
+	return fmt.Sprintf("%v%v%v", nameKey, separator, name)
+}
+
+// DESCRIPTION
+
+func serializeDescriptionLine(description string) string {
+	return fmt.Sprintf("%v%v%v", descriptionKey, separator, description)
+}
+
+// TIMESTAMP
+
+func serializeTimestampLine(timestamp string) string {
+	return fmt.Sprintf("%v%v%v", timestampKey, separator, timestamp)
+}
+
+// PREDICTION HISTORY
+
+func serializePredictionHistoryLines(predictionHistory []predictionHistory) string {
+	var predictionHistoryLines []string
+	for _, ph := range predictionHistory {
+		predictionHistoryLines = append(predictionHistoryLines, serializePredictionHistoryLine(ph))
+	}
+	if len(predictionHistory) == 0 {
+		return strings.Join([]string{predictionHistoryKey, noDataIdentifier}, separator)
+	}
+	return strings.Join(predictionHistoryLines, "\n")
+}
+
+func serializePredictionHistoryLine(ph predictionHistory) string {
+	return fmt.Sprintf(
+		"%v%v%v%v%v%v%v%v%v",
+		predictionHistoryKey, separator,
+		ph.Prediction, separator,
+		ph.Timestamp, separator,
+		serializePredictionHistoryInputs(ph.Input), separator,
+		serializePredictionHistoryOutputs(ph.Output),
+	)
+}
+
+func serializePredictionHistoryInputs(inputs []float64) string {
+	var is []string
+	for _, i := range inputs {
+		is = append(is, fmt.Sprintf("%v", i))
+	}
+	return strings.Join(is, ",")
+
+}
+
+func serializePredictionHistoryOutputs(outputs []float64) string {
+	var os []string
+	for _, o := range outputs {
+		os = append(os, fmt.Sprintf("%v", o))
+	}
+	return strings.Join(os, ",")
+}
+
+// TRAINING HISTORY
+
+func serializeTrainingHistoryLines(trainingHistory []trainingHistory) string {
+	var trainingHistoryLines []string
+	for _, ph := range trainingHistory {
+		trainingHistoryLines = append(trainingHistoryLines, serializeTrainingHistoryLine(ph))
+	}
+	if len(trainingHistory) == 0 {
+		return strings.Join([]string{trainingHistoryKey, noDataIdentifier}, separator)
+	}
+	return strings.Join(trainingHistoryLines, "\n")
+}
+
+func serializeTrainingHistoryLine(th trainingHistory) string {
+	return fmt.Sprintf(
+		"%v%v%v%v%v%v%v%v%v%v%v%v%v%v%v",
+		trainingHistoryKey, separator,
+		th.LearningRate, separator,
+		th.Iterations, separator,
+		th.MiniBatchSize, separator,
+		th.AverageLossCutoff, separator,
+		th.DataSetSize, separator,
+		th.Start, separator,
+		th.Finish,
+	)
+}
+
+// LOG
+
+func serializeLogLines(log string) string {
+	var logLines []string
+	rawLogLines := strings.Split(log, "\n")
+	for _, rll := range rawLogLines {
+		logLines = append(logLines, serializeLogLine(rll))
+	}
+	return strings.Join(logLines, "\n")
+}
+
+func serializeLogLine(rawLogLine string) string {
+	return fmt.Sprintf("%v%v%v", logKey, separator, rawLogLine)
+}
+
+// SHARED
+
+func generateLayerLabel(li int) string {
+	return fmt.Sprintf("%v_%v", layerIdentifier, li)
+}
+
+func generateNeuronLabel(ni int) string {
+	return fmt.Sprintf("%v_%v", neuronIdentifier, ni)
+}
+
+// SERIALIZE
+
+func (nw *Network) Serialize() NetworkString {
+	fl := nw.layers[0]
+	ll := nw.layers[len(nw.layers)-1]
+	lines := []string{
+		serializeVersionLine(),
+		serializeNeuronMapLine(nw.layers),
+		serializeBiasesLines(nw.layers[1:]),
+		serializeWeightsLines(nw.layers[1:]),
+		serializeInputLabelsLine(fl),
+		serializeOutputLabelsLine(ll),
+		serializeNameLine(nw.Metadata.Name),
+		serializeDescriptionLine(nw.Metadata.Description),
+		serializeTimestampLine(nw.Metadata.timestamp),
+		serializePredictionHistoryLines(nw.Metadata.PredictionHistory),
+		serializeTrainingHistoryLines(nw.Metadata.TrainingHistory),
+		serializeLogLines(nw.Metadata.Log),
+	}
+	return NetworkString(strings.Join(lines, "\n"))
 }

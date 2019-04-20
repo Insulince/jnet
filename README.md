@@ -12,7 +12,7 @@ TODO
 
 #### Example 
 
-The following example erects a simple network made of 4 layers. The first layer is the input layer with 5 neurons, and the last layer is the output layer with 3 neurons. The other two layers are hidden layers, each also containing 3 neurons. Each output neuron is labeled in order as "apple", "banana", and "orange". Following initial creation we proceed to training, and the first step of that is to define some training data. Due to this being a very simple example there is only one training datum defined (and it is defined arbitrarilly, mind you, this example is not intended to actually yield a meaningful result, rather just to show you the structure and flow of the API). In this case the provided inputs correspond to the output "orange". Following this is the configuration of how the training procedure should go, where we set the learning rate, training iterations, minibatch size (is also 1 because there is only 1 training datum, this is not how it would work in a real training session), and the average loss cutoff (training is stopped if the average loss is below this number). Next we run the training process, which will take up 99% of the execution time of this program. Once complete, we run a prediction and hope to see a reasonable result.
+The following example erects a simple network made of 4 layers. The first layer is the input layer with 5 neurons, and the last layer is the output layer with 3 neurons. The other two layers are hidden layers, each also containing 3 neurons. The output neurons are labeled in order as "apple", "banana", and "orange". The input neurons did not require any explicit labeling for this example, so an empty slice of the proper size is passed instead, but you can provide input labels if needed. Following initial creation we proceed to training, and the first step of that is to define some training data. Due to this being a very simple example there is only one training datum defined (and it is defined arbitrarily, mind you, this example is not intended to actually yield a meaningful result, rather its just to show you the structure and flow of the API). In this case the provided inputs correspond to the output "orange". Following this is the configuration of how the training procedure should go, where we set the learning rate, training iterations, minibatch size (the minibatch size is 1 because there is only 1 training datum, this is not how it would work in a real training session), and the average loss cutoff (training is stopped if the average loss is below this number). Next we run the training process, which will take up 99% of the execution time of this program. Once complete, we run a prediction and hope to see a reasonable result.
 
 ```go
 package main
@@ -23,9 +23,17 @@ import (
 )
 
 func main() () {
-	neurons := []int{5, 3, 3, 3}
-	labels := []string{"apple", "banana", "orange"}
-	nw := jnet.NewNetwork(neurons, labels)
+	// Create a neuron map.
+	nm := []int{5, 3, 3, 3}
+	// Create labels for the input neurons.
+	il := make([]string, nm[0])
+	// Create labels for the output neurons.
+	ol := []string{"apple", "banana", "orange"}
+	// Create the network.
+	nw, err := jnet.NewNetwork(nm, il, ol)
+	if err != nil {
+		panic(err)
+	}
 
 	trainingData := jnet.TrainingData{
 		{
@@ -36,12 +44,15 @@ func main() () {
 
 	trainConfig := jnet.TrainingConfiguration{
 		LearningRate:       0.01,
-		TrainingIterations: 100000,
+		Iterations: 100000,
 		MiniBatchSize:      1,
 		AverageLossCutoff:  0.1,
 	}
 
-	nw.Train(trainingData, trainConfig)
+	err = nw.Train(trainingData, trainConfig)
+	if err != nil {
+		panic(err)
+	}
 
 	input := []float64{0, 0, 1, 0, 1}
 	fmt.Println(nw.Predict(input))
@@ -54,13 +65,15 @@ The main limitations of this example is that we would need more training data an
 
  - [x] Serialize and Deserialize networks to and from strings
  - [ ] Documentation (lol)
- - [ ] Store and Read networks from file.
+ - [x] Store and Read networks ~~from file~~ outside of program.
  - [ ] Command Line Interface
  - [ ] Verbose & Silent mode
  - [ ] Allow different activation functions
- - [ ] Expose statistics about network in Public API
+ - [x] Expose statistics about network in Public API
  - [ ] Concurrency/Parallelism
  - [x] Stabilize Library (no panics for misconfiguration or silly mistakes)
+ - [ ] Standardize and export common error cases for downstream consumption
+ - [ ] Cancellation of training process mid-session
 
 ## Inspiration and Thanks
 

@@ -6,10 +6,10 @@ import (
 )
 
 type TrainingConfiguration struct {
-	LearningRate       float64 `json:"learningRate"`
-	TrainingIterations int     `json:"trainingIterations"`
-	MiniBatchSize      int     `json:"miniBatchSize"`
-	AverageLossCutoff  float64 `json:"averageLossCutoff"`
+	LearningRate      float64 `json:"learningRate"`
+	Iterations        int     `json:"iterations"`
+	MiniBatchSize     int     `json:"miniBatchSize"`
+	AverageLossCutoff float64 `json:"averageLossCutoff"`
 }
 
 type TrainingDatum struct {
