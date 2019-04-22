@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SerializerVersion = "2.0.0"
+	SerializerVersion = "2.1.0"
 
 	separator = "|"
 
@@ -16,13 +16,10 @@ const (
 	biasesKey            = "BIASES"
 	weightsKey           = "WEIGHTS"
 	inputLabelsKey       = "INPUT_LABELS"
-	nameKey              = "NAME"
-	descriptionKey       = "DESCRIPTION"
 	timestampKey         = "TIMESTAMP"
 	outputLabelsKey      = "OUTPUT_LABELS"
 	predictionHistoryKey = "PREDICTION_HISTORY"
 	trainingHistoryKey   = "TRAINING_HISTORY"
-	logKey               = "LOG"
 
 	layerIdentifier  = "LAYER"
 	neuronIdentifier = "NEURON"
@@ -118,18 +115,6 @@ func serializeOutputLabelsLine(ll *layer) string {
 	return fmt.Sprintf("%v%v%v", outputLabelsKey, separator, strings.Join(outputLabels, separator))
 }
 
-// NAME
-
-func serializeNameLine(name string) string {
-	return fmt.Sprintf("%v%v%v", nameKey, separator, name)
-}
-
-// DESCRIPTION
-
-func serializeDescriptionLine(description string) string {
-	return fmt.Sprintf("%v%v%v", descriptionKey, separator, description)
-}
-
 // TIMESTAMP
 
 func serializeTimestampLine(timestamp string) string {
@@ -204,21 +189,6 @@ func serializeTrainingHistoryLine(th trainingHistory) string {
 	)
 }
 
-// LOG
-
-func serializeLogLines(log string) string {
-	var logLines []string
-	rawLogLines := strings.Split(log, "\n")
-	for _, rll := range rawLogLines {
-		logLines = append(logLines, serializeLogLine(rll))
-	}
-	return strings.Join(logLines, "\n")
-}
-
-func serializeLogLine(rawLogLine string) string {
-	return fmt.Sprintf("%v%v%v", logKey, separator, rawLogLine)
-}
-
 // SHARED
 
 func generateLayerLabel(li int) string {
@@ -241,12 +211,9 @@ func (nw *Network) Serialize() NetworkString {
 		serializeWeightsLines(nw.layers[1:]),
 		serializeInputLabelsLine(fl),
 		serializeOutputLabelsLine(ll),
-		serializeNameLine(nw.Metadata.Name),
-		serializeDescriptionLine(nw.Metadata.Description),
 		serializeTimestampLine(nw.Metadata.timestamp),
 		serializePredictionHistoryLines(nw.Metadata.PredictionHistory),
 		serializeTrainingHistoryLines(nw.Metadata.TrainingHistory),
-		serializeLogLines(nw.Metadata.Log),
 	}
 	return NetworkString(strings.Join(lines, "\n"))
 }

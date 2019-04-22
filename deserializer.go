@@ -16,12 +16,9 @@ type deserializationData struct {
 	weights           [][][]float64
 	inputLabels       []string
 	outputLabels      []string
-	name              string
-	description       string
 	timestamp         string
 	predictionHistory []predictionHistory
 	trainingHistory   []trainingHistory
-	log               []string
 }
 
 func deserializeLengthError(section string, expected int, actual int) error {
@@ -41,7 +38,7 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 		items = append(items, strings.Split(line, separator))
 	}
 
-	versionDone, neuronMapDone, biasesDone, weightsDone, inputLabelsDone, outputLabelsDone, nameDone, descriptionDone, timestampDone, predictionHistoryDone, trainingHistoryDone := false, false, false, false, false, false, false, false, false, false, false
+	versionDone, neuronMapDone, biasesDone, weightsDone, inputLabelsDone, outputLabelsDone, timestampDone, predictionHistoryDone := false, false, false, false, false, false, false, false
 	expectedBiasLayer, expectedWeightLayer, expectedWeightNeuron := 1, 1, 0
 	for _, line := range items {
 		class := line[0]
@@ -210,36 +207,6 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 
 			continue
 		}
-		if class == nameKey {
-			if nameDone {
-				return nil, errors.New("attempting to deserialize name section but it has already been marked complete")
-			}
-			nameDone = true
-
-			data := line[1:]
-			if len(data) != 1 {
-				return nil, deserializeLengthError("name", 1, len(data))
-			}
-
-			dd.name = data[0]
-
-			continue
-		}
-		if class == descriptionKey {
-			if descriptionDone {
-				return nil, errors.New("attempting to deserialize description section but it has already been marked complete")
-			}
-			descriptionDone = true
-
-			data := line[1:]
-			if len(data) != 1 {
-				return nil, deserializeLengthError("name", 1, len(data))
-			}
-
-			dd.description = data[0]
-
-			continue
-		}
 		if class == timestampKey {
 			if timestampDone {
 				return nil, errors.New("attempting to deserialize timestamp section but it has already been marked complete")
@@ -248,7 +215,7 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 
 			data := line[1:]
 			if len(data) != 1 {
-				return nil, deserializeLengthError("name", 1, len(data))
+				return nil, deserializeLengthError("timestamp", 1, len(data))
 			}
 
 			_, err = time.Parse(time.RFC3339, data[0])
@@ -312,9 +279,6 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 			continue
 		}
 		if class == trainingHistoryKey {
-			if trainingHistoryDone {
-				return nil, errors.New("attempting to deserialize training history section but it has already been marked complete")
-			}
 			predictionHistoryDone = true
 
 			data := line[1:]
@@ -374,28 +338,11 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 
 			continue
 		}
-		if class == logKey {
-			trainingHistoryDone = true
-
-			data := line[1:]
-
-			if len(data) != 1 {
-				return nil, deserializeLengthError("log", 1, len(data))
-			}
-
-			if data[0] == noDataIdentifier {
-				continue
-			}
-
-			dd.log = append(dd.log, data[0])
-
-			continue
-		}
 
 		return nil, errors.New(fmt.Sprintf("unrecognized line encountered: %v", strings.Join(line, separator)))
 	}
 
-	if !versionDone || !neuronMapDone || !biasesDone || !weightsDone || !inputLabelsDone || !outputLabelsDone || !predictionHistoryDone || !trainingHistoryDone {
+	if !versionDone || !neuronMapDone || !biasesDone || !weightsDone || !inputLabelsDone || !outputLabelsDone || !predictionHistoryDone {
 		return nil, errors.New("not all sections were marked complete during deserialization process")
 	}
 
@@ -465,12 +412,6 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 		ll.neurons[ol].label = label
 	}
 
-	// SETUP NAME
-	nw.Metadata.Name = dd.name
-
-	// SETUP DESCRIPTION
-	nw.Metadata.Description = dd.description
-
 	// SETUP TIMESTAMP
 	nw.Metadata.timestamp = dd.timestamp
 
@@ -479,9 +420,6 @@ func Deserialize(networkString NetworkString) (nw *Network, err error) {
 
 	// SETUP TRAINING HISTORY
 	nw.Metadata.TrainingHistory = dd.trainingHistory
-
-	// SETUP LOG
-	nw.Metadata.Log = strings.Join(dd.log, "\n")
 
 	return nw, nil
 }

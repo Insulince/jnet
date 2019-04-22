@@ -14,12 +14,9 @@ type Network struct {
 }
 
 type metadata struct {
-	Name              string
-	Description       string
 	timestamp         string
 	PredictionHistory []predictionHistory
 	TrainingHistory   []trainingHistory
-	Log               string
 }
 
 // TODO: Add loss statistics and actual iterations to this struct
