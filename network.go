@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/TheDemx27/calculus"
 	"math"
+	"math/rand"
 	"time"
 )
 
@@ -343,4 +344,8 @@ func (nw *Network) getHighestConfidenceNeuron() (hcn *neuron) {
 	}
 
 	return hcn
+}
+
+func (nw *Network) Mutate() {
+	nw.layers[rand.Intn(len(nw.layers))].mutate()
 }

@@ -109,3 +109,12 @@ func (n *neuron) adjustWeights(learningRate float64) {
 		c.adjustWeight(learningRate)
 	}
 }
+
+func (n *neuron) mutate() {
+	r := rand.Intn(len(n.connections) + 1) // + 1 to include a chance to mutate the bias instead.
+	if r != len(n.connections) {           // If this is not that +1 chance...
+		n.connections[r].mutate() // Mutate a connection.
+	} else { // Otherwise...
+		n.bias = rand.Float64()*2 - 1 // Mutate randomly to [-1.0, 1.0) // Mutate the bias.
+	}
+}

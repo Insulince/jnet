@@ -56,3 +56,7 @@ func (c *connection) calculateAverageNudge() {
 func (c *connection) adjustWeight(learningRate float64) {
 	c.weight -= c.averageWeightNudge * learningRate
 }
+
+func (c *connection) mutate() {
+	c.weight = rand.Float64()*2 - 1 // Mutate randomly to [-1.0, 1.0) // Mutate the bias.
+}

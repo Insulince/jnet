@@ -1,6 +1,9 @@
 package jnet
 
-import "errors"
+import (
+	"errors"
+	"math/rand"
+)
 
 type layer struct {
 	neurons []*neuron
@@ -88,4 +91,8 @@ func (l *layer) adjustWeights(learningRate float64) {
 
 		n.adjustWeights(learningRate)
 	}
+}
+
+func (l *layer) mutate() {
+	l.neurons[rand.Intn(len(l.neurons))].mutate()
 }
