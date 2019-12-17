@@ -1,11 +1,14 @@
 package main
 
+// Padding note:
 // L: 31 x 51, W: 14, S: 11
 // W and S can be flipped for another interesting padding configuration
 
 import (
 	"fmt"
+	"github.com/Insulince/jnet"
 	"math"
+	"os"
 )
 
 const (
@@ -14,6 +17,23 @@ const (
 )
 
 func main() {
+	rows := 31
+	cols := 51
+	data := [][]float64{}
+	for i := 0; i < rows; i++ {
+		data = append(data, []float64{})
+		for j := 0; j < cols; j++ {
+			data[i] = append(data[i], 1.0)
+		}
+	}
+
+	printData(data)
+	fmt.Println()
+	p := maxPool(data, 14, 11)
+	printData(p)
+
+	os.Exit(0)
+
 	filters := [][][]float64{
 		{
 			{1, -1, -1},
@@ -118,7 +138,7 @@ func printData(data [][]float64) {
 	for ri, row := range data {
 		output += fmt.Sprintf("%3d | ", ri)
 		for _, cell := range row {
-			output += fmt.Sprintf("%5.2f ", cell)
+			output += fmt.Sprintf("%2.f ", cell)
 		}
 		output += "\n"
 	}
@@ -126,66 +146,36 @@ func printData(data [][]float64) {
 	fmt.Print(output)
 }
 
-func maxPool(origData [][]float64, windowSize int, stride int) [][]float64 {
+func maxPool(data [][]float64, windowSize int, stride int) [][]float64 {
 	// Deep copy the data array so we don't accidentally propagate padding changes back up to the caller.
-	data := make([][]float64, len(origData))
-	for di := range origData {
-		data[di] = make([]float64, len(origData[di]))
-		copy(data[di], origData[di])
-	}
+	data = jnet.Duplicate2d(data)
 
 	dl := len(data[0]) // Length of the data.
 	dh := len(data)    // Height of the data.
 
-	// Calculate horizontal padding needed to accommodate provided window size at provided stride.
+	// Calculate horizontal and vertical padding needed to accommodate provided window size at provided stride.
 	hpad := calculatePadding(dl, windowSize, stride)
-
-	// Calculate vertical padding needed to accommodate provided window size at provided stride.
 	vpad := calculatePadding(dh, windowSize, stride)
 
-	// Split the horizontal padding evenly on left and right sides.
-	lpad := hpad / 2
-	rpad := hpad / 2
-	if hpad%2 != 0 { // If horizontal padding can't be split evenly...
-		rpad++ // Put the extra padding on the right side.
-	}
-
-	// Split the vertical padding evenly on the top and bottom sides.
-	tpad := vpad / 2
-	bpad := vpad / 2
-	if vpad%2 != 0 { // If the vertical padding can't be split evenly...
-		bpad++ // Put the extra padding on the bottom side.
-	}
+	// Split the horizontal and vertical padding evenly on left and right sides and on the top and bottom sides, respectively.
+	lpad, rpad := splitPadding(hpad)
+	tpad, bpad := splitPadding(vpad)
 
 	for ri := 0; ri < dh; ri++ { // For each row in the data...
-		for lpi := 0; lpi < lpad; lpi++ { // For every requested piece of left padding...
-			data[ri] = append([]float64{0}, data[ri]...) // Prepend a zero to the current row.
-		}
-		for rpi := 0; rpi < rpad; rpi++ { // For every requested piece of right padding...
-			data[ri] = append(data[ri], 0) // Append a zero to the current row.
-		}
+		data[ri] = leftPad(data[ri], lpad)
+		data[ri] = rightPad(data[ri], rpad)
 	}
 
 	dl = len(data[0]) // Recalculate data length since it has been updated with horizontal padding.
 
-	for tpi := 0; tpi < tpad; tpi++ { // For every requested piece of top padding...
-		blankRow := []float64{} // Create and fill a blank row of zeroes of the same length as the data.
-		for i := 0; i < dl; i++ {
-			blankRow = append(blankRow, 0)
-		}
-		data = append([][]float64{blankRow}, data...) // Prepend it to the top of the data.
-	}
-	for bpi := 0; bpi < bpad; bpi++ { // For every requested piece of bottom padding...
-		blankRow := []float64{} // Create and fill a blank row of zeroes of the same length as the data.
-		for i := 0; i < dl; i++ {
-			blankRow = append(blankRow, 0)
-		}
-		data = append(data, blankRow) // Append it to the bottom of the data.
-	}
+	data = topPad(data, tpad)
+	data = bottomPad(data, bpad)
 
 	dh = len(data) // Recalculate data height since it has been updated with vertical padding.
 
 	// At this point, data should contain the provided data perfectly centered between enough padding on all sides to accommodate the provided window size at the provided stride.
+	printData(data)
+	fmt.Println()
 
 	// Perform the pooling operation.
 	// TODO: Check the <= nonsense. Output SHOULD be a 3x3 matrix, but without <= its 2x2 for some reason.
@@ -208,6 +198,48 @@ func maxPool(origData [][]float64, windowSize int, stride int) [][]float64 {
 	}
 
 	return pooledData
+}
+
+func leftPad(row []float64, lpad int) []float64 {
+	for lpi := 0; lpi < lpad; lpi++ { // For every requested piece of left padding...
+		row = append([]float64{0}, row...) // Prepend a zero to the current row.
+	}
+	return row
+}
+
+func rightPad(row []float64, rpad int) []float64 {
+	for rpi := 0; rpi < rpad; rpi++ { // For every requested piece of right padding...
+		row = append(row, 0) // Append a zero to the current row.
+	}
+	return row
+}
+
+func topPad(data [][]float64, tpad int) [][]float64 {
+	dl := len(data[0])
+	for tpi := 0; tpi < tpad; tpi++ { // For every requested piece of top padding...
+		blankRow := jnet.Fill1d(dl, 0)                // Generate a blank row.
+		data = append([][]float64{blankRow}, data...) // Prepend it to the top of the data.
+	}
+	return data
+}
+
+func bottomPad(data [][]float64, bpad int) [][]float64 {
+	dl := len(data[0])
+	for bpi := 0; bpi < bpad; bpi++ { // For every requested piece of bottom padding...
+		blankRow := jnet.Fill1d(dl, 0) // Generate a blank row.
+		data = append(data, blankRow)  // Append it to the bottom of the data.
+	}
+	return data
+}
+
+func splitPadding(pad int) (int, int) {
+	pad1 := pad / 2
+	pad2 := pad / 2
+	if pad%2 != 0 { // If the padding can't be split evenly...
+		pad2++ // Put the extra padding on pad2.
+	}
+
+	return pad1, pad2
 }
 
 func calculatePadding(length int, windowSize int, stride int) int {
