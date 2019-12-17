@@ -1,6 +1,8 @@
 package jnet
 
-import "math"
+import (
+	"math"
+)
 
 type activationFunction func(x float64) (y float64)
 

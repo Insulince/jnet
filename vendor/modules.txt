@@ -1,6 +1,0 @@
-# github.com/TheDemx27/calculus v0.0.0-20170802071712-c9ac6b2b2cc0
-github.com/TheDemx27/calculus
-github.com/TheDemx27/calculus/compute
-github.com/TheDemx27/calculus/constants
-github.com/TheDemx27/calculus/operators
-github.com/TheDemx27/calculus/operators/functions
