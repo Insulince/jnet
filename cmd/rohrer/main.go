@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/Insulince/jnet"
 	"log"
 	"math/rand"
 	"time"
@@ -13,7 +12,7 @@ func init() {
 }
 
 func main() {
-	nw, err := jnet.Deserialize(`1.0
+	nw, err := serialize.Deserialize(`1.0
 4 4 4 8 4
 2.672999788482761 -2.7088689357170344 2.8604848562446565 -0.04411667193355516
 2.983835343405863 -2.6901750050370294 2.9531085947371367 -2.0913287476036557

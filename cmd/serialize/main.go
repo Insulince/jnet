@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/Insulince/jnet"
+	"github.com/Insulince/jnet/pkg/network"
 )
 
 func main() {
 	nm := []int{3, 3, 3}
 	il := []string{"a", "b", "c"}
 	ol := []string{"0", "1", "2"}
-	nw1, err := jnet.NewNetwork(nm, il, ol)
+	nw1, err := network.New(nm, il, ol)
 	if err != nil {
 		panic(err)
 	}
 	s1 := nw1.Serialize()
 	fmt.Println(s1)
 	fmt.Println()
-	nw2, err := jnet.Deserialize(s1)
+	nw2, err := serialize.Deserialize(s1)
 	if err != nil {
 		panic(err)
 	}

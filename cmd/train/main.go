@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/Insulince/jnet"
+	"github.com/Insulince/jnet/pkg/network"
+	"github.com/Insulince/jnet/pkg/train"
 	"log"
 	"math/rand"
 	"time"
@@ -13,7 +14,7 @@ func init() {
 }
 
 func main() {
-	trainingData := jnet.TrainingData{
+	trainingData := train.Data{
 		// 0
 		{
 			Data: []float64{
@@ -346,15 +347,15 @@ func main() {
 		},
 	}
 
-	nm := []int{25, 16, 16, 10}
-	il := make([]string, nm[0])
-	ol := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-	nw, err := jnet.NewNetwork(nm, il, ol)
+	nw, err := network.New(network.Spec{
+		NeuronMap:    []int{25, 16, 16, 10},
+		OutputLabels: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	trainConfig := jnet.TrainingConfiguration{
+	trainConfig := train.Configuration{
 		LearningRate:      0.1,
 		Iterations:        2500000,
 		MiniBatchSize:     32,
@@ -369,7 +370,7 @@ func main() {
 		1, 1, 1, 0, 0,
 		1, 0, 1, 0, 0,
 		1, 1, 1, 0, 0,
-		0, 0, 1, 0, 0,
+		1, 0, 1, 0, 0,
 		1, 1, 1, 0, 0,
 	}
 
@@ -378,6 +379,4 @@ func main() {
 		log.Fatalln(err)
 	}
 	fmt.Println(prediction)
-
-	fmt.Println(nw.Serialize())
 }
