@@ -183,8 +183,8 @@ func (n *Neuron) MustSwapConnections(i, j int, cs []*Connection) []*Connection {
 
 func (n *Neuron) ConnectTo(pl Layer) {
 	n.Connections = nil
-	for _, pln := range pl {
-		n.Connections = append(n.Connections, newConnection(pln))
+	for ni := range pl {
+		n.Connections = append(n.Connections, newConnection(pl[ni]))
 	}
 }
 
@@ -211,7 +211,7 @@ func (n *Neuron) resetForMiniBatch() {
 	n.dValueDNet = 0.0
 	n.dNetDBias = 0.0
 
-	n.biasNudges = []float64{}
+	n.biasNudges = n.biasNudges[:0]
 
 	for ci := range n.Connections {
 		n.Connections[ci].resetForMiniBatch()

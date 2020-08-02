@@ -5,7 +5,8 @@ import (
 )
 
 type Connection struct {
-	left   *Neuron
+	left *Neuron // TODO(justin): rename
+
 	weight float64
 
 	dNetDWeight    float64 // The effect this Connection's weight has on the weighted sum + bias.

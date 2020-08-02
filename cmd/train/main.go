@@ -355,8 +355,9 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// TODO(justin): Make this less overly fitted
 	trainConfig := train.Configuration{
-		LearningRate:      0.1,
+		LearningRate:      0.05,
 		Iterations:        2500000,
 		MiniBatchSize:     32,
 		AverageLossCutoff: 0.5,

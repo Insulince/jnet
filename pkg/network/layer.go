@@ -169,8 +169,8 @@ func (l Layer) MustSwapNeurons(i, j int, ns []*Neuron, pl Layer) []*Neuron {
 }
 
 func (l Layer) ConnectTo(pl Layer) {
-	for _, n := range l {
-		n.ConnectTo(pl)
+	for ni := range l {
+		l[ni].ConnectTo(pl)
 	}
 }
 

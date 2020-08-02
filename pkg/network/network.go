@@ -54,7 +54,7 @@ func New(spec Spec) (Network, error) {
 	}
 
 	if spec.OutputLabels == nil {
-		return nil, errors.New("must provide output labels")
+		return nil, errors.New("must provide output labels") // TODO(justin): Make optional?
 	}
 	err = nw.LastLayer().setNeuronLabels(spec.OutputLabels)
 	if err != nil {
@@ -302,20 +302,23 @@ func (nw Network) Train(td train.Data, tc train.Configuration) error {
 		totalMiniBatchLoss := 0.0
 
 		nw.resetForMiniBatch()
-		for mbi := 0; mbi < tc.MiniBatchSize; mbi++ { // For every desired item to be in the minibatch...
-			td := &miniBatch[mbi]
-
+		for _, td := range miniBatch {
 			nw.resetForPass()
+
 			err := nw.forwardPass(td.Data)
 			if err != nil {
 				return err
 			}
+
 			loss, err := nw.calculateLoss(td.Truth)
 			if err != nil {
 				return err
 			}
+
 			totalMiniBatchLoss += loss
+
 			nw.backwardPass(td.Truth)
+
 			nw.recordNudges()
 		}
 
@@ -349,6 +352,7 @@ func (nw Network) Train(td train.Data, tc train.Configuration) error {
 }
 
 // TODO(justin): Break up
+// TODO(justin): Either make this also return an error like forwardPass or make forwardPass swallow the error for consistency.
 func (nw Network) backwardPass(truth []float64) {
 	ll := nw.LastLayer()
 	for i := range ll {
@@ -411,10 +415,11 @@ func (nw Network) mustCalculateLoss(truth []float64) float64 {
 }
 
 func (nw Network) getHighestConfidenceNeuron() *Neuron {
-	var hcn = nw.LastLayer()[0]
-	for _, n := range nw.LastLayer() {
-		if n.value > hcn.value {
-			hcn = n
+	ll := nw.LastLayer()
+	var hcn = ll[0]
+	for ni := range nw.LastLayer() {
+		if ll[ni].value > hcn.value {
+			hcn = ll[ni]
 		}
 	}
 	return hcn
