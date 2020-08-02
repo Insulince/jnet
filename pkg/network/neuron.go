@@ -22,14 +22,10 @@ type Neuron struct {
 }
 
 func newNeuron(pl Layer) *Neuron {
-	var n Neuron
-
-	n.bias = rand.Float64()*2 - 1 // Initialize randomly to [-1.0, 1.0)
-
-	if pl != nil {
-		n.ConnectTo(pl)
+	n := Neuron{
+		bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
 	}
-
+	n.ConnectTo(pl)
 	return &n
 }
 

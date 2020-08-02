@@ -266,9 +266,7 @@ func (nw Network) forwardPass(input []float64) error {
 		for ni := range l {
 			n := l[ni]
 			for ci := range n.Connections {
-				c := n.Connections[ci]
-
-				n.wSum += c.left.value * c.weight
+				n.wSum += n.Connections[ci].left.value * n.Connections[ci].weight
 			}
 
 			net := n.wSum + n.bias
@@ -277,10 +275,8 @@ func (nw Network) forwardPass(input []float64) error {
 			n.dNetDBias = 1.0
 
 			for ci := range n.Connections {
-				c := n.Connections[ci]
-
-				c.dNetDWeight = c.left.value
-				c.dNetDPrevValue = c.weight
+				n.Connections[ci].dNetDWeight = n.Connections[ci].left.value
+				n.Connections[ci].dNetDPrevValue = n.Connections[ci].weight
 			}
 		}
 	}

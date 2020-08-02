@@ -360,7 +360,7 @@ func main() {
 		LearningRate:      0.05,
 		Iterations:        2500000,
 		MiniBatchSize:     32,
-		AverageLossCutoff: 0.5,
+		AverageLossCutoff: 0.93,
 	}
 	err = nw.Train(trainingData, trainConfig)
 	if err != nil {
@@ -371,7 +371,7 @@ func main() {
 		1, 1, 1, 0, 0,
 		1, 0, 1, 0, 0,
 		1, 1, 1, 0, 0,
-		1, 0, 1, 0, 0,
+		0, 0, 1, 0, 0,
 		1, 1, 1, 0, 0,
 	}
 
