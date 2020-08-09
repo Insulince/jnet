@@ -255,18 +255,26 @@ func (nw Network) Predict(input []float64) (string, error) {
 	return nw.getHighestConfidenceNeuron().label, nil
 }
 
-func (nw Network) forwardPass(input []float64) error {
-	err := nw.FirstLayer().setNeuronValues(input)
+func (nw Network) forwardPass(input []float64) (err error) {
+	fl := nw[0]
+	err = fl.setNeuronValues(input)
 	if err != nil {
 		return err
 	}
 
-	for li := range nw {
+	ql := len(nw)
+	for li := 1; li < ql; li++ { // For every layer except the first, starting from the second...
 		l := nw[li]
-		for ni := range l {
+
+		qn := len(l)
+		for ni := 0; ni < qn; ni++ { // For every neuron in the current layer...
 			n := l[ni]
-			for ci := range n.Connections {
-				n.wSum += n.Connections[ci].left.value * n.Connections[ci].weight
+
+			qc := len(n.Connections)
+			for ci := 0; ci < qc; ci++ { // For every connection this neuron has to the the previous layer...
+				c := n.Connections[ci]
+
+				n.wSum += c.left.value * c.weight
 			}
 
 			net := n.wSum + n.bias
@@ -274,9 +282,11 @@ func (nw Network) forwardPass(input []float64) error {
 			n.dValueDNet = calculus.Diff(sigmoid, net)
 			n.dNetDBias = 1.0
 
-			for ci := range n.Connections {
-				n.Connections[ci].dNetDWeight = n.Connections[ci].left.value
-				n.Connections[ci].dNetDPrevValue = n.Connections[ci].weight
+			for ci := 0; ci < qc; ci++ { // For every connection this neuron has to the the previous layer...
+				c := n.Connections[ci]
+
+				c.dNetDWeight = c.left.value
+				c.dNetDPrevValue = c.weight
 			}
 		}
 	}
