@@ -231,7 +231,19 @@ func (l Layer) recordNudges() {
 }
 
 func (l Layer) adjustWeights(learningRate float64) {
-	for ni := range l {
-		l[ni].adjustWeights(learningRate)
+	qn := len(l)
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
+		n := l[ni]
+
+		n.adjustWeights(learningRate)
+	}
+}
+
+func (l Layer) calculateAverageNudges() {
+	qn := len(l)
+	for ni := 0; ni < qn; ni++ { // For every neuron in this layer...
+		n := l[ni]
+
+		n.calculateAverageNudge()
 	}
 }
