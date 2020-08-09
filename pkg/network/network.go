@@ -349,7 +349,6 @@ func (nw Network) Train(td train.Data, tc train.Configuration) error {
 			break
 		}
 
-		nw.calculateAverageNudges()
 		nw.adjustWeights(tc.LearningRate)
 	}
 
@@ -434,14 +433,4 @@ func (nw Network) getHighestConfidenceNeuron() *Neuron {
 		}
 	}
 	return hcn
-}
-
-func (nw Network) calculateAverageNudges() {
-	ql := len(nw)
-
-	for li := 0; li < ql; li++ { // For every layer in the network...
-		l := nw[li]
-
-		l.calculateAverageNudges()
-	}
 }

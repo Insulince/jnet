@@ -18,8 +18,7 @@ type Neuron struct {
 	dValueDNet  float64 // The effect this Neuron's weighted sum + bias has on the Neuron's value.
 	dNetDBias   float64 // The effect this Neuron's bias has on the weighted sum + bias.
 
-	biasNudges       []float64
-	averageBiasNudge float64
+	biasNudges []float64
 }
 
 func newNeuron(pl Layer) *Neuron {
@@ -209,7 +208,6 @@ func (n *Neuron) resetForMiniBatch() {
 	n.dNetDBias = 0.0
 
 	n.biasNudges = n.biasNudges[:0]
-	n.averageBiasNudge = 0.0
 
 	for ci := range n.Connections {
 		n.Connections[ci].resetForMiniBatch()
@@ -224,33 +222,18 @@ func (n *Neuron) recordNudge() {
 	}
 }
 
-func (n *Neuron) adjustWeights(learningRate float64) {
-	n.bias -= n.averageBiasNudge * learningRate
-
-	qc := len(n.Connections)
-	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
-
-		c.adjustWeight(learningRate)
-	}
-}
-
-func (n *Neuron) calculateAverageNudge() {
+func (n *Neuron) averageBiasNudge() float64 {
 	sum := 0.0
-
-	qbn := len(n.biasNudges)
-	for bni := 0; bni < qbn; bni++ { // For every bias nudge in this neuron...
-		bn := n.biasNudges[bni]
-
+	for _, bn := range n.biasNudges {
 		sum += bn
 	}
+	return sum / float64(len(n.biasNudges))
+}
 
-	n.averageBiasNudge = sum / float64(qbn)
+func (n *Neuron) adjustWeights(learningRate float64) {
+	n.bias -= n.averageBiasNudge() * learningRate
 
-	qc := len(n.Connections)
-	for ci := 0; ci < qc; ci++ { // For every connection from this neuron to the previous layer's neurons...
-		c := n.Connections[ci]
-
-		c.calculateAverageNudge()
+	for ci := range n.Connections {
+		n.Connections[ci].adjustWeight(learningRate)
 	}
 }

@@ -13,8 +13,7 @@ type Connection struct {
 	dLossDWeight   float64 // The effect this Connection's weight has on the loss.
 	dNetDPrevValue float64 // The effect this Connection's left-Neuron's activation has on the weighted sum + bias.
 
-	weightNudges       []float64
-	averageWeightNudge float64
+	weightNudges []float64
 }
 
 func newConnection(left *Neuron) *Connection {
@@ -36,7 +35,6 @@ func (c *Connection) resetForMiniBatch() {
 	c.dNetDPrevValue = 0.0
 
 	c.weightNudges = c.weightNudges[:0]
-	c.averageWeightNudge = 0.0
 }
 
 func (c *Connection) recordNudge() {
@@ -44,18 +42,13 @@ func (c *Connection) recordNudge() {
 }
 
 func (c *Connection) adjustWeight(learningRate float64) {
-	c.weight -= c.averageWeightNudge * learningRate
+	c.weight -= c.averageWeightNudge() * learningRate
 }
 
-func (c *Connection) calculateAverageNudge() {
+func (c *Connection) averageWeightNudge() float64 {
 	sum := 0.0
-
-	qwn := len(c.weightNudges)
-	for wni := 0; wni < qwn; wni++ { // For every weight nudge in this connection...
-		wn := c.weightNudges[wni]
-
+	for _, wn := range c.weightNudges {
 		sum += wn
 	}
-
-	c.averageWeightNudge = sum / float64(qwn)
+	return sum / float64(len(c.weightNudges))
 }
