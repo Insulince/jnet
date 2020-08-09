@@ -3,6 +3,7 @@ package network
 import (
 	"errors"
 	"fmt"
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 	"github.com/Insulince/jnet/pkg/train"
 	"github.com/TheDemx27/calculus"
 	"math"
@@ -104,7 +105,7 @@ func (nw Network) GetLayers(i, j int) ([]Layer, error) {
 		return nil, nil
 	}
 	if i > j {
-		return nil, fmt.Errorf("cannot get subset [%v, %v), i must be less than or equal to j")
+		return nil, fmt.Errorf("cannot get subset [%v, %v), i must be less than or equal to j", i, j)
 	}
 	if i < 0 {
 		return nil, fmt.Errorf("cannot get subset starting at < 0 (requested i: %v)", i)
@@ -247,7 +248,7 @@ func (nw Network) Predict(input []float64) (string, error) {
 
 	nw.resetForPass()
 
-	err := nw.forwardPass(input)
+	err := nw.forwardPass(input, activationfunction.Sigmoid) // TODO Defaults to Sigmoid, should this be changed?
 	if err != nil {
 		return "", err
 	}
@@ -255,36 +256,28 @@ func (nw Network) Predict(input []float64) (string, error) {
 	return nw.getHighestConfidenceNeuron().label, nil
 }
 
-func (nw Network) forwardPass(input []float64) (err error) {
-	fl := nw[0]
-	err = fl.setNeuronValues(input)
+func (nw Network) forwardPass(input []float64, activationFunction activationfunction.ActivationFunction) error {
+	err := nw.FirstLayer().setNeuronValues(input)
 	if err != nil {
 		return err
 	}
 
-	ql := len(nw)
-	for li := 1; li < ql; li++ { // For every layer except the first, starting from the second...
+	for li := 1; li < len(nw); li++ { // For every layer EXCEPT THE FIRST, starting from the SECOND...
 		l := nw[li]
-
-		qn := len(l)
-		for ni := 0; ni < qn; ni++ { // For every neuron in the current layer...
+		for ni := range l {
 			n := l[ni]
-
-			qc := len(n.Connections)
-			for ci := 0; ci < qc; ci++ { // For every connection this neuron has to the the previous layer...
+			for ci := range n.Connections {
 				c := n.Connections[ci]
-
 				n.wSum += c.left.value * c.weight
 			}
 
 			net := n.wSum + n.bias
-			n.value = sigmoid(net)
-			n.dValueDNet = calculus.Diff(sigmoid, net)
+			n.value = activationFunction(net)
+			n.dValueDNet = calculus.Diff((func(float64) float64)(activationFunction), net)
 			n.dNetDBias = 1.0
 
-			for ci := 0; ci < qc; ci++ { // For every connection this neuron has to the the previous layer...
+			for ci := range n.Connections {
 				c := n.Connections[ci]
-
 				c.dNetDWeight = c.left.value
 				c.dNetDPrevValue = c.weight
 			}
@@ -295,6 +288,8 @@ func (nw Network) forwardPass(input []float64) (err error) {
 }
 
 func (nw Network) Train(td train.Data, tc train.Configuration) error {
+	// TODO(justin): Add validation that TC is valid (must contain an activation function. or just set a default)
+
 	fmt.Println("Starting training process...")
 
 	totalLoss, averageLoss, minMiniBatchLoss, maxMiniBatchLoss := 0.0, 0.0, float64(math.MaxInt32), float64(-math.MaxInt32)
@@ -311,7 +306,7 @@ func (nw Network) Train(td train.Data, tc train.Configuration) error {
 		for _, td := range miniBatch {
 			nw.resetForPass()
 
-			err := nw.forwardPass(td.Data)
+			err := nw.forwardPass(td.Data, tc.ActivationFunction)
 			if err != nil {
 				return err
 			}

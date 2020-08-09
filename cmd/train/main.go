@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 	"github.com/Insulince/jnet/pkg/network"
 	"github.com/Insulince/jnet/pkg/train"
 	"log"
@@ -357,24 +358,27 @@ func main() {
 
 	// TODO(justin): Make this less overly fitted
 	trainConfig := train.Configuration{
-		LearningRate:      0.05,
-		Iterations:        2500000,
-		MiniBatchSize:     32,
-		AverageLossCutoff: 0.93,
+		LearningRate:       0.1,
+		Iterations:         2500000,
+		MiniBatchSize:      32,
+		AverageLossCutoff:  0.5,
+		ActivationFunction: activationfunction.Sigmoid,
 	}
 	err = nw.Train(trainingData, trainConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// This input represents a 7.
 	input := []float64{
 		1, 1, 1, 0, 0,
-		1, 0, 1, 0, 0,
-		1, 1, 1, 0, 0,
 		0, 0, 1, 0, 0,
-		1, 1, 1, 0, 0,
+		0, 0, 1, 0, 0,
+		0, 0, 1, 0, 0,
+		0, 0, 1, 0, 0,
 	}
 
+	fmt.Println("Prediction (should be 7):")
 	prediction, err := nw.Predict(input)
 	if err != nil {
 		log.Fatalln(err)

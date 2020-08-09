@@ -2,14 +2,16 @@ package train
 
 import (
 	"errors"
+	"github.com/Insulince/jnet/pkg/activation-function"
 	"math/rand"
 )
 
 type Configuration struct {
-	LearningRate      float64
-	Iterations        int
-	MiniBatchSize     int
-	AverageLossCutoff float64
+	LearningRate       float64
+	Iterations         int
+	MiniBatchSize      int
+	AverageLossCutoff  float64
+	ActivationFunction activationfunction.ActivationFunction
 }
 
 type Datum struct {
