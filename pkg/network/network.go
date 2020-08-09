@@ -322,7 +322,7 @@ func (nw Network) Train(td train.Data, tc train.Configuration) error {
 		fmt.Printf("%3f ", miniBatchLoss)
 
 		totalLoss += miniBatchLoss
-		averageLoss = totalLoss / float64(ti)
+		averageLoss = totalLoss / float64(ti) // TODO divide by zero????
 
 		if miniBatchLoss > maxMiniBatchLoss {
 			maxMiniBatchLoss = miniBatchLoss
