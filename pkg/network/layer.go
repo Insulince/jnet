@@ -59,15 +59,9 @@ func (l Layer) MustSetNeuronLabels(labels []string) {
 	}
 }
 
-func (l Layer) resetForPass() {
+func (l Layer) resetForPass(andBatch bool) {
 	for ni := range l {
-		l[ni].resetForPass()
-	}
-}
-
-func (l Layer) resetForMiniBatch() {
-	for ni := range l {
-		l[ni].resetForMiniBatch()
+		l[ni].resetForPass(andBatch)
 	}
 }
 

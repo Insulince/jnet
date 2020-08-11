@@ -31,8 +31,13 @@ func NewNeuron(pl Layer) *Neuron {
 func (n *Neuron) SetLabel(label string) {
 	n.label = label
 }
+
 func (n *Neuron) SetValue(value float64) {
 	n.value = value
+}
+
+func (n *Neuron) SetBias(bias float64) {
+	n.bias = bias
 }
 
 func (n *Neuron) ConnectTo(pl Layer) {
@@ -42,7 +47,7 @@ func (n *Neuron) ConnectTo(pl Layer) {
 	}
 }
 
-func (n *Neuron) resetForPass() {
+func (n *Neuron) resetForPass(andBatch bool) {
 	n.value = 0.0
 	n.wSum = 0.0
 
@@ -51,24 +56,12 @@ func (n *Neuron) resetForPass() {
 	n.dValueDNet = 0.0
 	n.dNetDBias = 0.0
 
-	for ci := range n.Connections {
-		n.Connections[ci].resetForPass()
+	if andBatch {
+		n.biasNudges = n.biasNudges[:0]
 	}
-}
-
-func (n *Neuron) resetForMiniBatch() {
-	n.value = 0.0
-	n.wSum = 0.0
-
-	n.dLossDValue = 0.0
-	n.dLossDBias = 0.0
-	n.dValueDNet = 0.0
-	n.dNetDBias = 0.0
-
-	n.biasNudges = n.biasNudges[:0]
 
 	for ci := range n.Connections {
-		n.Connections[ci].resetForMiniBatch()
+		n.Connections[ci].resetForPass(andBatch)
 	}
 }
 

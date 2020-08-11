@@ -27,18 +27,14 @@ func (c *Connection) SetWeight(weight float64) {
 	c.weight = weight
 }
 
-func (c *Connection) resetForPass() {
-	c.dNetDWeight = 0.0
-	c.dLossDWeight = 0.0
-	c.dNetDPrevValue = 0.0
-}
-
-func (c *Connection) resetForMiniBatch() {
+func (c *Connection) resetForPass(andBatch bool) {
 	c.dNetDWeight = 0.0
 	c.dLossDWeight = 0.0
 	c.dNetDPrevValue = 0.0
 
-	c.weightNudges = c.weightNudges[:0]
+	if andBatch {
+		c.weightNudges = c.weightNudges[:0]
+	}
 }
 
 func (c *Connection) recordNudge() {

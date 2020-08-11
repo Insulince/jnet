@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/training"
 	"github.com/TheDemx27/calculus"
 	"math"
 )
@@ -55,7 +54,8 @@ func New(spec Spec) (Network, error) {
 	}
 
 	if spec.OutputLabels == nil {
-		return nil, errors.New("must provide output labels") // TODO(justin): Make optional?
+		fmt.Println("warning: you did not provide any output labels, this is likely unintended")
+		spec.OutputLabels = make([]string, spec.NeuronMap[len(spec.NeuronMap)-1])
 	}
 	err = nw.LastLayer().SetNeuronLabels(spec.OutputLabels)
 	if err != nil {
@@ -78,9 +78,9 @@ func (nw Network) Predict(input []float64) (string, error) {
 		return "", fmt.Errorf("invalid number of values provided (%v), does no match number of neurons in Layer (%v)", len(input), len(nw.FirstLayer()))
 	}
 
-	nw.resetForPass()
+	nw.ResetForPass(true)
 
-	err := nw.forwardPass(input, activationfunction.Sigmoid) // TODO Defaults to Sigmoid, should this be changed?
+	err := nw.ForwardPass(input, activationfunction.Sigmoid) // TODO Defaults to Sigmoid, should this be changed?
 	if err != nil {
 		return "", err
 	}
@@ -88,7 +88,15 @@ func (nw Network) Predict(input []float64) (string, error) {
 	return nw.HighestConfidenceNeuron().label, nil
 }
 
-func (nw Network) forwardPass(input []float64, activationFunction activationfunction.ActivationFunction) error {
+func (nw Network) MustPredict(input []float64) string {
+	prediction, err := nw.Predict(input)
+	if err != nil {
+		panic(err)
+	}
+	return prediction
+}
+
+func (nw Network) ForwardPass(input []float64, activationFunction activationfunction.ActivationFunction) error {
 	err := nw.FirstLayer().SetNeuronValues(input)
 	if err != nil {
 		return err
@@ -119,77 +127,21 @@ func (nw Network) forwardPass(input []float64, activationFunction activationfunc
 	return nil
 }
 
-// TODO(justin): Add a return type that is a cancel function
-func (nw Network) Train(td training.Data, tc training.Configuration) error {
-	// TODO(justin): Add validation that TC is valid (must contain an activation function. or just set a default)
-	// TODO(justin): Make use of the timeout in the training configuration.
-
-	fmt.Println("Starting training process...")
-
-	totalLoss, averageLoss, minMiniBatchLoss, maxMiniBatchLoss := 0.0, 0.0, float64(math.MaxInt32), float64(-math.MaxInt32)
-
-	for ti := 0; ti < tc.Iterations; ti++ { // For every desired training iteration...
-		miniBatch, err := td.MiniBatch(tc.MiniBatchSize)
-		if err != nil {
-			return err
-		}
-
-		totalMiniBatchLoss := 0.0
-
-		nw.resetForMiniBatch()
-		for _, td := range miniBatch {
-			nw.resetForPass()
-
-			err := nw.forwardPass(td.Data, tc.ActivationFunction)
-			if err != nil {
-				return err
-			}
-
-			loss, err := nw.calculateLoss(td.Truth)
-			if err != nil {
-				return err
-			}
-
-			totalMiniBatchLoss += loss
-
-			nw.backwardPass(td.Truth)
-
-			nw.recordNudges()
-		}
-
-		miniBatchLoss := totalMiniBatchLoss / float64(tc.MiniBatchSize) // Get the average loss across the whole mini batch.
-		fmt.Printf("%3f ", miniBatchLoss)
-
-		totalLoss += miniBatchLoss
-		averageLoss = totalLoss / float64(ti) // TODO divide by zero????
-
-		if miniBatchLoss > maxMiniBatchLoss {
-			maxMiniBatchLoss = miniBatchLoss
-		}
-		if miniBatchLoss < minMiniBatchLoss {
-			minMiniBatchLoss = miniBatchLoss
-		}
-		if (ti+1)%15 == 0 {
-			fmt.Printf(" | %5f %5f %5f - %v\n", averageLoss, minMiniBatchLoss, maxMiniBatchLoss, ti)
-		}
-
-		if averageLoss < tc.AverageLossCutoff {
-			fmt.Printf("\nReached average loss cutoff limit, ending training process...\n")
-			break
-		}
-
-		nw.adjustWeights(tc.LearningRate)
+func (nw Network) MustForwardPass(input []float64, activationFunction activationfunction.ActivationFunction) {
+	err := nw.ForwardPass(input, activationFunction)
+	if err != nil {
+		panic(err)
 	}
-
-	fmt.Println("Training process ended.")
-
-	return nil
 }
 
 // TODO(justin): Break up
-// TODO(justin): Either make this also return an error like forwardPass or make forwardPass swallow the error for consistency.
-func (nw Network) backwardPass(truth []float64) {
+func (nw Network) BackwardPass(truth []float64) error {
 	ll := nw.LastLayer()
+
+	if len(truth) != len(ll) {
+		return fmt.Errorf("cannot perform backwards pass: truth data length (%v) is not of same length as last layer of neurons (%v)", len(truth), len(ll))
+	}
+
 	for i := range ll {
 		ll[i].dLossDValue = 2 * (ll[i].value - truth[i])
 		ll[i].dLossDBias = ll[i].dLossDValue * ll[i].dValueDNet * ll[i].dNetDBias
@@ -214,6 +166,15 @@ func (nw Network) backwardPass(truth []float64) {
 			}
 		}
 	}
+
+	return nil
+}
+
+func (nw Network) MustBackwardPass(truth []float64) {
+	err := nw.BackwardPass(truth)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (nw Network) HighestConfidenceNeuron() *Neuron {
@@ -227,7 +188,7 @@ func (nw Network) HighestConfidenceNeuron() *Neuron {
 	return hcn
 }
 
-func (nw Network) calculateLoss(truth []float64) (float64, error) {
+func (nw Network) CalculateLoss(truth []float64) (float64, error) {
 	qt, qn := len(truth), len(nw.LastLayer())
 	if qt != qn {
 		return 0, fmt.Errorf("can't calculate loss, length of truth (%v) and length of output Layer (%v) do not match", qt, qn)
@@ -240,33 +201,27 @@ func (nw Network) calculateLoss(truth []float64) (float64, error) {
 	return loss, nil
 }
 
-func (nw Network) mustCalculateLoss(truth []float64) float64 {
-	loss, err := nw.calculateLoss(truth)
+func (nw Network) MustCalculateLoss(truth []float64) float64 {
+	loss, err := nw.CalculateLoss(truth)
 	if err != nil {
 		panic(err)
 	}
 	return loss
 }
 
-func (nw Network) resetForPass() {
+func (nw Network) ResetForPass(andBatch bool) {
 	for li := range nw {
-		nw[li].resetForPass()
+		nw[li].resetForPass(andBatch)
 	}
 }
 
-func (nw Network) resetForMiniBatch() {
-	for li := range nw {
-		nw[li].resetForMiniBatch()
-	}
-}
-
-func (nw Network) recordNudges() {
+func (nw Network) RecordNudges() {
 	for li := range nw {
 		nw[li].recordNudges()
 	}
 }
 
-func (nw Network) adjustWeights(learningRate float64) {
+func (nw Network) AdjustWeights(learningRate float64) {
 	for li := range nw {
 		nw[li].adjustWeights(learningRate)
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 	"github.com/Insulince/jnet/pkg/network"
-	"github.com/Insulince/jnet/pkg/training"
+	"github.com/Insulince/jnet/pkg/trainer"
 	"log"
 	"math/rand"
 	"time"
@@ -15,7 +15,7 @@ func init() {
 }
 
 func main() {
-	trainingData := training.Data{
+	trainingData := trainer.Data{
 		// 0
 		{
 			Data: []float64{
@@ -357,16 +357,23 @@ func main() {
 	}
 
 	// TODO(justin): Make this less overly fitted
-	trainConfig := training.Configuration{
+	trainConfig := trainer.Configuration{
 		LearningRate:       0.1,
 		Iterations:         2500000,
 		MiniBatchSize:      32,
 		AverageLossCutoff:  0.5,
 		ActivationFunction: activationfunction.Sigmoid,
+		Timeout:            1 * time.Minute,
 	}
-	err = nw.Train(trainingData, trainConfig)
+
+	t := trainer.New(trainConfig, trainingData)
+
+	err = t.Train(nw)
 	if err != nil {
-		log.Fatalln(err)
+		if err != trainer.ErrTimedOut {
+			log.Fatalln(err)
+		}
+		log.Println(err.Error(), "continuing to prediction from current network state")
 	}
 
 	// This input represents a 7.

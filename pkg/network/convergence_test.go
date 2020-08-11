@@ -1,12 +1,16 @@
-package network
+package network_test
 
 import (
+	"errors"
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/training"
+	"github.com/Insulince/jnet/pkg/network"
+	"github.com/Insulince/jnet/pkg/trainer"
 	"math/rand"
 	"testing"
 	"time"
 )
+
+var timeout = errors.New("timeout")
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -25,17 +29,17 @@ func init() {
 // a false negative, then to truly be sure in the event of a failing test that it isn't a false negative, simply run it
 // again, or even multiple times.
 func Test_NetworkConverges(t *testing.T) {
-	done, timeout := make(chan struct{}), make(chan struct{})
+	exit := make(chan error)
 
 	go func() {
-		spec := Spec{
+		spec := network.Spec{
 			NeuronMap:    []int{4, 4, 4, 4},
 			InputLabels:  []string{"", "", "", ""},
 			OutputLabels: []string{"1", "2", "3", "4"},
 		}
-		nw, _ := New(spec)
+		nw, _ := network.New(spec)
 
-		td := training.Data{
+		td := trainer.Data{
 			{
 				Data:  []float64{1, 0, 0, 0},
 				Truth: []float64{1, 0, 0, 0},
@@ -54,7 +58,7 @@ func Test_NetworkConverges(t *testing.T) {
 			},
 		}
 
-		tc := training.Configuration{
+		tc := trainer.Configuration{
 			LearningRate:       0.1,
 			Iterations:         2500000,
 			MiniBatchSize:      len(td),
@@ -62,20 +66,29 @@ func Test_NetworkConverges(t *testing.T) {
 			ActivationFunction: activationfunction.Sigmoid,
 		}
 
-		nw.Train(td, tc)
+		t := trainer.Trainer{
+			Configuration: tc,
+			Data:          td,
+		}
 
-		done <- struct{}{}
+		err := t.Train(nw)
+
+		exit <- err
 	}()
 
 	go func() {
 		time.Sleep(1 * time.Second) // This network should converge in well under a second.
-		timeout <- struct{}{}
+		exit <- timeout
 	}()
 
 	select {
-	case <-done:
-		return
-	case <-timeout:
-		t.Fatal("network took to long to converge")
+	case err := <-exit:
+		if err == timeout {
+			t.Fatal("network took to long to converge")
+			return
+		}
+		if err != nil {
+			t.Fatalf("something went wrong: %v", err)
+		}
 	}
 }
