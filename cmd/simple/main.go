@@ -4,7 +4,7 @@ import (
 	"fmt"
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 	"github.com/Insulince/jnet/pkg/network"
-	"github.com/Insulince/jnet/pkg/train"
+	"github.com/Insulince/jnet/pkg/training"
 	"log"
 	"math/rand"
 	"time"
@@ -15,7 +15,7 @@ func init() {
 }
 
 func main() {
-	trainingData := train.Data{
+	trainingData := training.Data{
 		// 0
 		{
 			Data: []float64{
@@ -357,7 +357,7 @@ func main() {
 	}
 
 	// TODO(justin): Make this less overly fitted
-	trainConfig := train.Configuration{
+	trainConfig := training.Configuration{
 		LearningRate:       0.1,
 		Iterations:         2500000,
 		MiniBatchSize:      32,

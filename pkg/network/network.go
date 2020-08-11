@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/train"
+	"github.com/Insulince/jnet/pkg/training"
 	"github.com/TheDemx27/calculus"
 	"math"
 )
@@ -39,17 +39,17 @@ func New(spec Spec) (Network, error) {
 		qn := spec.NeuronMap[li]
 
 		if li == 0 {
-			nw = append(nw, newLayer(qn, nil))
+			nw = append(nw, NewLayer(qn, nil))
 			continue
 		}
 		pl := nw[li-1]
-		nw = append(nw, newLayer(qn, pl))
+		nw = append(nw, NewLayer(qn, pl))
 	}
 
 	if spec.InputLabels == nil {
 		spec.InputLabels = make([]string, spec.NeuronMap[0])
 	}
-	err := nw.FirstLayer().setNeuronLabels(spec.InputLabels)
+	err := nw.FirstLayer().SetNeuronLabels(spec.InputLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func New(spec Spec) (Network, error) {
 	if spec.OutputLabels == nil {
 		return nil, errors.New("must provide output labels") // TODO(justin): Make optional?
 	}
-	err = nw.LastLayer().setNeuronLabels(spec.OutputLabels)
+	err = nw.LastLayer().SetNeuronLabels(spec.OutputLabels)
 	if err != nil {
 		return nil, err
 	}
@@ -73,174 +73,6 @@ func MustNew(spec Spec) Network {
 	return nw
 }
 
-func (nw Network) FirstLayer() Layer {
-	return nw[0]
-}
-
-func (nw Network) LastLayer() Layer {
-	return nw[len(nw)-1]
-}
-
-func (nw Network) GetLayer(i int) (Layer, error) {
-	if i < 0 {
-		return nil, fmt.Errorf("cannot get layer at index < 0 (requested %v)", i)
-	}
-	if i >= len(nw) {
-		return nil, fmt.Errorf("cannot get layer at index > size of network, %v (requested %v)", len(nw), i)
-	}
-	return nw[i], nil
-}
-
-func (nw Network) MustGetLayer(i int) Layer {
-	l, err := nw.GetLayer(i)
-	if err != nil {
-		panic(err)
-	}
-	return l
-}
-
-// GetLayers returns the subset of layers from i to j, i inclusive and j exclusive.
-func (nw Network) GetLayers(i, j int) ([]Layer, error) {
-	if i == j {
-		return nil, nil
-	}
-	if i > j {
-		return nil, fmt.Errorf("cannot get subset [%v, %v), i must be less than or equal to j", i, j)
-	}
-	if i < 0 {
-		return nil, fmt.Errorf("cannot get subset starting at < 0 (requested i: %v)", i)
-	}
-	if j > len(nw) {
-		return nil, fmt.Errorf("cannot get subset ending at > size of network (requested j: %v)", j)
-	}
-	return nw[i:j], nil
-}
-
-func (nw Network) MustGetLayers(i, j int) []Layer {
-	ls, err := nw.GetLayers(i, j)
-	if err != nil {
-		panic(err)
-	}
-	return ls
-}
-
-func (nw Network) SetLayer(i int, l Layer) error {
-	if i < 0 {
-		return fmt.Errorf("cannot set layer at index < 0 (requested %v)", i)
-	}
-	if i >= len(nw) {
-		return fmt.Errorf("cannot set layer at index > size of network, %v (requested %v)", len(nw), i)
-	}
-	nw[i] = l
-	if i > 0 {
-		l.ConnectTo(nw[i-1])
-	}
-	return nil
-}
-
-func (nw Network) MustSetLayer(i int, l Layer) {
-	err := nw.SetLayer(i, l)
-	if err != nil {
-		panic(err)
-	}
-}
-
-// SetLayers sets the subset of layers from i to j, i inclusive and j exclusive, to ls.
-func (nw Network) SetLayers(i, j int, ls []Layer) error {
-	if i == j {
-		return nil
-	}
-	if i > j {
-		return fmt.Errorf("cannot set subset [%v, %v), i must be less than or equal to j", i, j)
-	}
-	if i < 0 {
-		return fmt.Errorf("cannot set subset starting at < 0 (requested i: %v)", i)
-	}
-	if j > len(nw) {
-		return fmt.Errorf("cannot set subset ending at > size of network (requested j: %v)", j)
-	}
-	q := j - i
-	if len(ls) != q {
-		return fmt.Errorf("cannot set a subset of layers to a set of layers of different length. target subset length: %v, provided set length: %v", q, len(ls))
-	}
-	for k := 0; k < q; k++ {
-		nw[k+i] = ls[k]
-		if k+i > 0 {
-			ls[k].ConnectTo(nw[k+i-1])
-		}
-	}
-	return nil
-}
-
-func (nw Network) MustSetLayers(i, j int, ls []Layer) {
-	err := nw.SetLayers(i, j, ls)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (nw Network) SwapLayer(i int, l Layer) (Layer, error) {
-	if i < 0 {
-		return nil, fmt.Errorf("cannot swap layer at index < 0 (requested %v)", i)
-	}
-	if i >= len(nw) {
-		return nil, fmt.Errorf("cannot swap layer at index > size of network, %v (requested %v)", len(nw), i)
-	}
-	ol := nw.MustGetLayer(i)
-	nw.MustSetLayer(i, l)
-	return ol, nil
-}
-
-func (nw Network) MustSwapLayer(i int, l Layer) Layer {
-	ol, err := nw.SwapLayer(i, l)
-	if err != nil {
-		panic(err)
-	}
-	return ol
-}
-
-func (nw Network) SwapLayers(i, j int, ls []Layer) ([]Layer, error) {
-	if i == j {
-		return nil, nil
-	}
-	if i > j {
-		return nil, fmt.Errorf("cannot swap subset [%v, %v), i must be less than or equal to j", i, j)
-	}
-	if i < 0 {
-		return nil, fmt.Errorf("cannot swap subset starting at < 0 (requested i: %v)", i)
-	}
-	if j > len(nw) {
-		return nil, fmt.Errorf("cannot swap subset ending at > size of network (requested j: %v)", j)
-	}
-	q := j - i
-	if len(ls) != q {
-		return nil, fmt.Errorf("cannot swap a subset of layers with a set of layers of different length. target subset length: %v, provided set length: %v", q, len(ls))
-	}
-	ols := nw.MustGetLayers(i, j)
-	nw.MustSetLayers(i, j, ls)
-	return ols, nil
-}
-
-func (nw Network) MustSwapLayers(i, j int, ls []Layer) []Layer {
-	ols, err := nw.SwapLayers(i, j, ls)
-	if err != nil {
-		panic(err)
-	}
-	return ols
-}
-
-func (nw Network) resetForPass() {
-	for li := range nw {
-		nw[li].resetForPass()
-	}
-}
-
-func (nw Network) resetForMiniBatch() {
-	for li := range nw {
-		nw[li].resetForMiniBatch()
-	}
-}
-
 func (nw Network) Predict(input []float64) (string, error) {
 	if len(input) != len(nw.FirstLayer()) {
 		return "", fmt.Errorf("invalid number of values provided (%v), does no match number of neurons in Layer (%v)", len(input), len(nw.FirstLayer()))
@@ -253,11 +85,11 @@ func (nw Network) Predict(input []float64) (string, error) {
 		return "", err
 	}
 
-	return nw.getHighestConfidenceNeuron().label, nil
+	return nw.HighestConfidenceNeuron().label, nil
 }
 
 func (nw Network) forwardPass(input []float64, activationFunction activationfunction.ActivationFunction) error {
-	err := nw.FirstLayer().setNeuronValues(input)
+	err := nw.FirstLayer().SetNeuronValues(input)
 	if err != nil {
 		return err
 	}
@@ -268,7 +100,7 @@ func (nw Network) forwardPass(input []float64, activationFunction activationfunc
 			n := l[ni]
 			for ci := range n.Connections {
 				c := n.Connections[ci]
-				n.wSum += c.left.value * c.weight
+				n.wSum += c.To.value * c.weight
 			}
 
 			net := n.wSum + n.bias
@@ -278,7 +110,7 @@ func (nw Network) forwardPass(input []float64, activationFunction activationfunc
 
 			for ci := range n.Connections {
 				c := n.Connections[ci]
-				c.dNetDWeight = c.left.value
+				c.dNetDWeight = c.To.value
 				c.dNetDPrevValue = c.weight
 			}
 		}
@@ -288,8 +120,9 @@ func (nw Network) forwardPass(input []float64, activationFunction activationfunc
 }
 
 // TODO(justin): Add a return type that is a cancel function
-func (nw Network) Train(td train.Data, tc train.Configuration) error {
+func (nw Network) Train(td training.Data, tc training.Configuration) error {
 	// TODO(justin): Add validation that TC is valid (must contain an activation function. or just set a default)
+	// TODO(justin): Make use of the timeout in the training configuration.
 
 	fmt.Println("Starting training process...")
 
@@ -383,20 +216,15 @@ func (nw Network) backwardPass(truth []float64) {
 	}
 }
 
-func (nw Network) recordNudges() {
-	for li := range nw {
-		nw[li].recordNudges()
+func (nw Network) HighestConfidenceNeuron() *Neuron {
+	ll := nw.LastLayer()
+	var hcn = ll[0]
+	for ni := range nw.LastLayer() {
+		if ll[ni].value > hcn.value {
+			hcn = ll[ni]
+		}
 	}
-}
-
-func (nw Network) adjustWeights(learningRate float64) {
-	ql := len(nw)
-
-	for li := 0; li < ql; li++ { // For every layer in the network...
-		l := nw[li]
-
-		l.adjustWeights(learningRate)
-	}
+	return hcn
 }
 
 func (nw Network) calculateLoss(truth []float64) (float64, error) {
@@ -420,13 +248,26 @@ func (nw Network) mustCalculateLoss(truth []float64) float64 {
 	return loss
 }
 
-func (nw Network) getHighestConfidenceNeuron() *Neuron {
-	ll := nw.LastLayer()
-	var hcn = ll[0]
-	for ni := range nw.LastLayer() {
-		if ll[ni].value > hcn.value {
-			hcn = ll[ni]
-		}
+func (nw Network) resetForPass() {
+	for li := range nw {
+		nw[li].resetForPass()
 	}
-	return hcn
+}
+
+func (nw Network) resetForMiniBatch() {
+	for li := range nw {
+		nw[li].resetForMiniBatch()
+	}
+}
+
+func (nw Network) recordNudges() {
+	for li := range nw {
+		nw[li].recordNudges()
+	}
+}
+
+func (nw Network) adjustWeights(learningRate float64) {
+	for li := range nw {
+		nw[li].adjustWeights(learningRate)
+	}
 }

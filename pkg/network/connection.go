@@ -5,22 +5,26 @@ import (
 )
 
 type Connection struct {
-	left *Neuron // TODO(justin): rename
+	To *Neuron // The neuron that this Connection's owning neuron is considered to be connected "to". This neuron should be in the layer previous to the Connection's owning neuron.
 
 	weight float64
 
 	dNetDWeight    float64 // The effect this Connection's weight has on the weighted sum + bias.
 	dLossDWeight   float64 // The effect this Connection's weight has on the loss.
-	dNetDPrevValue float64 // The effect this Connection's left-Neuron's activation has on the weighted sum + bias.
+	dNetDPrevValue float64 // The effect this Connection's connected neuron's activation has on the weighted sum + bias.
 
 	weightNudges []float64
 }
 
-func newConnection(left *Neuron) *Connection {
+func NewConnection(pn *Neuron) *Connection {
 	return &Connection{
-		left:   left,
+		To:     pn,
 		weight: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
 	}
+}
+
+func (c *Connection) SetWeight(weight float64) {
+	c.weight = weight
 }
 
 func (c *Connection) resetForPass() {

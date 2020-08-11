@@ -2,7 +2,7 @@ package network
 
 import (
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/train"
+	"github.com/Insulince/jnet/pkg/training"
 	"math/rand"
 	"testing"
 	"time"
@@ -35,7 +35,7 @@ func Test_NetworkConverges(t *testing.T) {
 		}
 		nw, _ := New(spec)
 
-		td := train.Data{
+		td := training.Data{
 			{
 				Data:  []float64{1, 0, 0, 0},
 				Truth: []float64{1, 0, 0, 0},
@@ -54,7 +54,7 @@ func Test_NetworkConverges(t *testing.T) {
 			},
 		}
 
-		tc := train.Configuration{
+		tc := training.Configuration{
 			LearningRate:       0.1,
 			Iterations:         2500000,
 			MiniBatchSize:      len(td),

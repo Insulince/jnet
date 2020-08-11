@@ -1,9 +1,10 @@
-package train
+package training
 
 import (
 	"errors"
 	"github.com/Insulince/jnet/pkg/activation-function"
 	"math/rand"
+	"time"
 )
 
 type Configuration struct {
@@ -12,6 +13,7 @@ type Configuration struct {
 	MiniBatchSize      int
 	AverageLossCutoff  float64
 	ActivationFunction activationfunction.ActivationFunction
+	Timeout            time.Duration
 }
 
 type Datum struct {
@@ -29,15 +31,15 @@ func (d Data) shuffle() {
 	}
 }
 
-func (d Data) MiniBatch(miniBatchSize int) (Data, error) {
-	if miniBatchSize < 1 {
+func (d Data) MiniBatch(size int) (Data, error) {
+	if size < 1 {
 		return nil, errors.New("requested mini batch size must be at least 1")
 	}
-	if miniBatchSize > len(d) {
+	if size > len(d) {
 		return nil, errors.New("requested mini batch size larger than number of training datums")
 	}
 
 	d.shuffle()
 
-	return d[:miniBatchSize], nil
+	return d[:size], nil
 }
