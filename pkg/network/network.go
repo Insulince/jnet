@@ -287,6 +287,7 @@ func (nw Network) forwardPass(input []float64, activationFunction activationfunc
 	return nil
 }
 
+// TODO(justin): Add a return type that is a cancel function
 func (nw Network) Train(td train.Data, tc train.Configuration) error {
 	// TODO(justin): Add validation that TC is valid (must contain an activation function. or just set a default)
 
