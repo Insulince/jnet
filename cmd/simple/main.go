@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Insulince/jnet"
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+	"github.com/Insulince/jnet/pkg/network"
+	"github.com/Insulince/jnet/pkg/training"
 	"log"
 	"math/rand"
 	"time"
@@ -13,7 +15,7 @@ func init() {
 }
 
 func main() {
-	trainingData := jnet.TrainingData{
+	trainingData := training.Data{
 		// 0
 		{
 			Data: []float64{
@@ -346,38 +348,40 @@ func main() {
 		},
 	}
 
-	nm := []int{25, 16, 16, 10}
-	il := make([]string, nm[0])
-	ol := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
-	nw, err := jnet.NewNetwork(nm, il, ol)
+	nw, err := network.New(network.Spec{
+		NeuronMap:    []int{25, 16, 16, 10},
+		OutputLabels: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+	})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	trainConfig := jnet.TrainingConfiguration{
-		LearningRate:      0.1,
-		Iterations:        2500000,
-		MiniBatchSize:     32,
-		AverageLossCutoff: 0.5,
+	// TODO(justin): Make this less overly fitted
+	trainConfig := training.Configuration{
+		LearningRate:       0.1,
+		Iterations:         2500000,
+		MiniBatchSize:      32,
+		AverageLossCutoff:  0.5,
+		ActivationFunction: activationfunction.Sigmoid,
 	}
 	err = nw.Train(trainingData, trainConfig)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// This input represents a 7.
 	input := []float64{
 		1, 1, 1, 0, 0,
-		1, 0, 1, 0, 0,
-		1, 1, 1, 0, 0,
 		0, 0, 1, 0, 0,
-		1, 1, 1, 0, 0,
+		0, 0, 1, 0, 0,
+		0, 0, 1, 0, 0,
+		0, 0, 1, 0, 0,
 	}
 
+	fmt.Println("Prediction (should be 7):")
 	prediction, err := nw.Predict(input)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	fmt.Println(prediction)
-
-	fmt.Println(nw.Serialize())
 }

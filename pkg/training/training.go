@@ -1,0 +1,45 @@
+package training
+
+import (
+	"errors"
+	"github.com/Insulince/jnet/pkg/activation-function"
+	"math/rand"
+	"time"
+)
+
+type Configuration struct {
+	LearningRate       float64
+	Iterations         int
+	MiniBatchSize      int
+	AverageLossCutoff  float64
+	ActivationFunction activationfunction.ActivationFunction
+	Timeout            time.Duration
+}
+
+type Datum struct {
+	Data  []float64
+	Truth []float64
+}
+
+type Data []Datum
+
+func (d Data) shuffle() {
+	for i := 0; i < len(d); i++ { // For every training datum in this training data...
+		r := rand.Intn(i + 1) // Select a random training datum index in [0, i]
+
+		d[i], d[r] = d[r], d[i]
+	}
+}
+
+func (d Data) MiniBatch(size int) (Data, error) {
+	if size < 1 {
+		return nil, errors.New("requested mini batch size must be at least 1")
+	}
+	if size > len(d) {
+		return nil, errors.New("requested mini batch size larger than number of training datums")
+	}
+
+	d.shuffle()
+
+	return d[:size], nil
+}
