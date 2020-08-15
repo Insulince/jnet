@@ -14,10 +14,40 @@ func NewLayer(qn int, pl Layer) Layer {
 	return l
 }
 
+// ConnectTo connects all the neurons in l to all the neurons in pl using brand new connections.
 func (l Layer) ConnectTo(pl Layer) {
 	for ni := range l {
 		l[ni].ConnectTo(pl)
 	}
+}
+
+// ConnectWith connects all the neurons in l to all the neurons in pl using the provided connections. cs is an MxN slice
+// of connections where M is the number of neurons in l, and n is the number of neurons in pl. If this is not honored,
+// an error will be returned.
+func (l Layer) ConnectWith(pl Layer, cs [][]*Connection) error {
+	if len(cs) != len(l) {
+		return fmt.Errorf("cannot connect layer with previous layer using provided connections: number of provided sets of connections (%v) does not match number of neurons in layer (%v)", len(cs), len(l))
+	}
+
+	for ni := range l {
+		err := l[ni].ConnectWith(pl, cs[ni])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ConnectNeurons connects all neurons in l to all neurons in pl using the existing connections. It only updates what
+// each neurons Connection.To points to.
+func (l Layer) ConnectNeurons(pl Layer) error {
+	for ni := range l {
+		err := l[ni].ConnectNeurons(pl)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (l Layer) SetNeuronValues(values []float64) error {

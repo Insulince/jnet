@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -40,11 +41,39 @@ func (n *Neuron) SetBias(bias float64) {
 	n.bias = bias
 }
 
+// ConnectTo connects n to all the neurons in pl using brand new connections.
 func (n *Neuron) ConnectTo(pl Layer) {
 	n.Connections = nil
-	for ni := range pl {
-		n.Connections = append(n.Connections, NewConnection(pl[ni]))
+	for pni := range pl {
+		n.Connections = append(n.Connections, NewConnection(pl[pni]))
 	}
+}
+
+// ConnectWith connects n to all neurons in pl using the provided connections. You must provide the same number of
+// connections are there are neurons in the previous layer.
+func (n *Neuron) ConnectWith(pl Layer, pcs []*Connection) error {
+	if len(pcs) != len(pl) {
+		return fmt.Errorf("cannot connect neuron with layer using provided connections: number of connections (%v) does not match number of neurons in previous layer (%v)", len(pcs), len(pl))
+	}
+
+	n.Connections = nil
+	for pni := range pl {
+		n.Connections = append(n.Connections, pcs[pni])
+	}
+	return nil
+}
+
+// ConnectNeurons connects n to all neurons in pl using the existing connections. It only updates what n.Connection.To
+// points to.
+func (n *Neuron) ConnectNeurons(pl Layer) error {
+	if len(n.Connections) != len(pl) {
+		return fmt.Errorf("cannot connect neuron with previous layer using existing connections: number of existing connections (%v) does not match number of neurons in previous layer (%v)", len(n.Connections), len(pl))
+	}
+
+	for ni := range n.Connections {
+		n.Connections[ni].To = pl[ni]
+	}
+	return nil
 }
 
 func (n *Neuron) resetForPass(andBatch bool) {

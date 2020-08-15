@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// TODO(justin): Add MinLossCutoff
 type Configuration struct {
 	LearningRate       float64
 	Iterations         int
@@ -102,7 +103,10 @@ func (t *Trainer) Train(nw network.Network) error {
 
 			totalMiniBatchLoss += loss
 
-			nw.BackwardPass(td.Truth)
+			err = nw.BackwardPass(td.Truth)
+			if err != nil {
+				return err
+			}
 
 			nw.RecordNudges()
 		}

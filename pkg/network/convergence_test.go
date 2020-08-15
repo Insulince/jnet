@@ -34,7 +34,6 @@ func Test_NetworkConverges(t *testing.T) {
 	go func() {
 		spec := network.Spec{
 			NeuronMap:    []int{4, 4, 4, 4},
-			InputLabels:  []string{"", "", "", ""},
 			OutputLabels: []string{"1", "2", "3", "4"},
 		}
 		nw, _ := network.New(spec)
@@ -66,12 +65,12 @@ func Test_NetworkConverges(t *testing.T) {
 			ActivationFunction: activationfunction.Sigmoid,
 		}
 
-		t := trainer.Trainer{
+		tr := trainer.Trainer{
 			Configuration: tc,
 			Data:          td,
 		}
 
-		err := t.Train(nw)
+		err := tr.Train(nw)
 
 		exit <- err
 	}()

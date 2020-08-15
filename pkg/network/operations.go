@@ -4,6 +4,20 @@ import "fmt"
 
 //////////////////////////////////////// Network ////////////////////////////////////////
 
+func (nw Network) Equals(nw2 Network) (bool, string) {
+	if len(nw) != len(nw2) {
+		return false, "networks are different lengths"
+	}
+
+	for li := range nw {
+		if equal, reason := nw[li].Equals(nw2[li]); !equal {
+			return false, reason
+		}
+	}
+
+	return true, ""
+}
+
 func (nw Network) FirstLayer() Layer {
 	return nw[0]
 }
@@ -162,6 +176,20 @@ func (nw Network) MustSwapLayers(i, j int, ls []Layer) []Layer {
 
 //////////////////////////////////////// Layer ////////////////////////////////////////
 
+func (l Layer) Equals(l2 Layer) (bool, string) {
+	if len(l) != len(l2) {
+		return false, "layers are different lengths"
+	}
+
+	for ni := range l {
+		if equal, reason := l[ni].Equals(l2[ni]); !equal {
+			return false, reason
+		}
+	}
+
+	return true, ""
+}
+
 func (l Layer) FirstNeuron() *Neuron {
 	return l[0]
 }
@@ -318,6 +346,58 @@ func (l Layer) MustSwapNeurons(i, j int, ns []*Neuron, pl Layer) []*Neuron {
 
 //////////////////////////////////////// Neuron ////////////////////////////////////////
 
+func (n *Neuron) Equals(n2 *Neuron) (bool, string) {
+	// NOTE(justin): To avoid misleading behavior, nil values are not considered equal.
+	if n == nil || n2 == nil {
+		return false, "one or both of the neurons are nil"
+	}
+
+	if len(n.Connections) != len(n2.Connections) {
+		return false, "neurons do not have same number of connections"
+	}
+	for ci := range n.Connections {
+		if equal, reason := n.Connections[ci].Equals(n2.Connections[ci]); !equal {
+			return false, reason
+		}
+	}
+
+	if n.label != n2.label {
+		return false, "neurons' labels do not match"
+	}
+	if n.value != n2.value {
+		return false, "neurons' values do not match"
+	}
+	if n.wSum != n2.wSum {
+		return false, "neurons' wSums do not match"
+	}
+	if n.bias != n2.bias {
+		return false, "neurons' biases do not match"
+	}
+	if n.dLossDValue != n2.dLossDValue {
+		return false, "neurons' dLossDValues do not match"
+	}
+	if n.dLossDBias != n2.dLossDBias {
+		return false, "neurons' dLossDBias do not match"
+	}
+	if n.dValueDNet != n2.dValueDNet {
+		return false, "neurons' dValueDNet do not match"
+	}
+	if n.dNetDBias != n2.dNetDBias {
+		return false, "neurons' dNetDBias do not match"
+	}
+
+	if len(n.biasNudges) != len(n2.biasNudges) {
+		return false, "neurons do not have same number of bias nudges"
+	}
+	for bi := range n.biasNudges {
+		if n.biasNudges[bi] != n2.biasNudges[bi] {
+			return false, "neurons' biasNudges do not match"
+		}
+	}
+
+	return true, ""
+}
+
 func (n *Neuron) FirstConnection() *Connection {
 	return n.Connections[0]
 }
@@ -464,4 +544,44 @@ func (n *Neuron) MustSwapConnections(i, j int, cs []*Connection) []*Connection {
 		panic(err)
 	}
 	return ons
+}
+
+//////////////////////////////////////// Connection ////////////////////////////////////////
+
+func (c *Connection) Equals(c2 *Connection) (bool, string) {
+	// NOTE(justin): To avoid misleading behavior, nil values are not considered equal.
+	if c == nil || c2 == nil {
+		return false, "one or both of the connections are nil"
+	}
+
+	// NOTE(justin): This introduces a lot of calculations, exponentially so as the network grows in layers.
+	// This line means that Neuron.Equals calls Connection.Equals which then calls Neuron.Equals again on its connecting
+	// neuron. And while this will eventually terminate, it means there will be a lot of checks.
+	if equal, reason := c.To.Equals(c2.To); !equal {
+		return false, reason
+	}
+
+	if c.weight != c2.weight {
+		return false, "connections' weights do not match"
+	}
+	if c.dNetDWeight != c2.dNetDWeight {
+		return false, "connections' dNetDWeights do not match"
+	}
+	if c.dLossDWeight != c2.dLossDWeight {
+		return false, "connections' dLossDWeights do not match"
+	}
+	if c.dNetDPrevValue != c2.dNetDPrevValue {
+		return false, "connections' dNetDPrevValues do not match"
+	}
+
+	if len(c.weightNudges) != len(c2.weightNudges) {
+		return false, "connections do not have same number of weight nudges"
+	}
+	for wi := range c.weightNudges {
+		if c.weightNudges[wi] != c2.weightNudges[wi] {
+			return false, "connections' biasNudges do not match"
+		}
+	}
+
+	return true, ""
 }

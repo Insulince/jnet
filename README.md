@@ -69,11 +69,12 @@ The main limitations of this example is that we would need more training data an
  - [ ] Command Line Interface
  - [ ] Verbose & Silent mode
  - [ ] Allow different activation functions
- - [x] Expose statistics about network in Public API
+ - [ ] Expose statistics about network in Public API
  - [ ] Concurrency/Parallelism
  - [x] Stabilize Library (no panics for misconfiguration or silly mistakes)
  - [ ] Standardize and export common error cases for downstream consumption
  - [ ] Cancellation of training process mid-session
+ - [ ] Debug Relu activation function
 
 ## Inspiration and Thanks
 
