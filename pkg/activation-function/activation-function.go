@@ -4,6 +4,10 @@ import "math"
 
 type ActivationFunction func(x float64) float64
 
+func Noop(x float64) float64 {
+	return 0
+}
+
 func Sigmoid(x float64) float64 {
 	return 1 / (1 + math.Pow(math.E, -x))
 }
@@ -25,6 +29,7 @@ func Linear(x float64) float64 {
 
 // NOTE(justin): The following ensures that all functions adhere to the ActivationFunction type
 var (
+	_ ActivationFunction = Noop
 	_ ActivationFunction = Sigmoid
 	_ ActivationFunction = Tanh
 	_ ActivationFunction = Relu

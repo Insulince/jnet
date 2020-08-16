@@ -11,7 +11,7 @@ func Test_SerializeAndDeserializeAreInverses(t *testing.T) {
 		InputLabels:  []string{"a", "b", "c", "d"},
 		OutputLabels: []string{"1", "2", "3", "4"},
 	}
-	nw, _ := New(spec)
+	nw, _ := From(spec)
 
 	_ = nw.ForwardPass([]float64{1, 0, 0, 0}, activationfunction.Sigmoid)
 	_ = nw.BackwardPass([]float64{1, 0, 0, 0})

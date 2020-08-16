@@ -10,7 +10,7 @@ import (
 
 type Network []Layer
 
-// Spec defines the details for construction a Network.
+// Spec defines the details for the construction of a Network.
 // - NeuronMap is an []int which is intended to detail the number of neurons in each Layer. For example if index 3
 //   contains the value 5, that would mean that the third Layer of the network should contain 5 neurons.
 // - InputLabels defines the labels for each of the input neurons. len(InputLabels) must equal NeuronMap[0].
@@ -22,13 +22,8 @@ type Spec struct {
 	OutputLabels []string
 }
 
-// TODO(justin): Make simple constructor and fine grained constructor
-type Constructor interface {
-	Construct()
-}
-
-// New creates a new Network from the construction details in spec.
-func New(spec Spec) (Network, error) {
+// From creates a new Network from the construction details in spec.
+func From(spec Spec) (Network, error) {
 	nw := Network{}
 
 	if spec.NeuronMap == nil {
@@ -65,8 +60,8 @@ func New(spec Spec) (Network, error) {
 	return nw, nil
 }
 
-func MustNew(spec Spec) Network {
-	nw, err := New(spec)
+func MustFrom(spec Spec) Network {
+	nw, err := From(spec)
 	if err != nil {
 		panic(err)
 	}

@@ -18,6 +18,10 @@ func (nw Network) Equals(nw2 Network) (bool, string) {
 	return true, ""
 }
 
+func (nw Network) NumLayers() int {
+	return len(nw)
+}
+
 func (nw Network) FirstLayer() Layer {
 	return nw[0]
 }
@@ -124,7 +128,7 @@ func (nw Network) MustSetLayers(i, j int, ls []Layer) {
 	}
 }
 
-func (nw Network) SwapLayer(i int, l Layer) (Layer, error) {
+func (nw Network) SwapOutLayer(i int, l Layer) (Layer, error) {
 	if i < 0 {
 		return nil, fmt.Errorf("cannot swap layer at index < 0 (requested %v)", i)
 	}
@@ -136,15 +140,15 @@ func (nw Network) SwapLayer(i int, l Layer) (Layer, error) {
 	return ol, nil
 }
 
-func (nw Network) MustSwapLayer(i int, l Layer) Layer {
-	ol, err := nw.SwapLayer(i, l)
+func (nw Network) MustSwapOutLayer(i int, l Layer) Layer {
+	ol, err := nw.SwapOutLayer(i, l)
 	if err != nil {
 		panic(err)
 	}
 	return ol
 }
 
-func (nw Network) SwapLayers(i, j int, ls []Layer) ([]Layer, error) {
+func (nw Network) SwapOutLayers(i, j int, ls []Layer) ([]Layer, error) {
 	if i == j {
 		return nil, nil
 	}
@@ -166,8 +170,8 @@ func (nw Network) SwapLayers(i, j int, ls []Layer) ([]Layer, error) {
 	return ols, nil
 }
 
-func (nw Network) MustSwapLayers(i, j int, ls []Layer) []Layer {
-	ols, err := nw.SwapLayers(i, j, ls)
+func (nw Network) MustSwapOutLayers(i, j int, ls []Layer) []Layer {
+	ols, err := nw.SwapOutLayers(i, j, ls)
 	if err != nil {
 		panic(err)
 	}
@@ -188,6 +192,10 @@ func (l Layer) Equals(l2 Layer) (bool, string) {
 	}
 
 	return true, ""
+}
+
+func (l Layer) NumNeurons() int {
+	return len(l)
 }
 
 func (l Layer) FirstNeuron() *Neuron {
@@ -294,7 +302,7 @@ func (l Layer) MustSetNeurons(i, j int, ns []*Neuron, pl Layer) {
 	}
 }
 
-func (l Layer) SwapNeuron(i int, n *Neuron, pl Layer) (*Neuron, error) {
+func (l Layer) SwapOutNeuron(i int, n *Neuron, pl Layer) (*Neuron, error) {
 	if i < 0 {
 		return nil, fmt.Errorf("cannot swap neuron at index < 0 (requested %v)", i)
 	}
@@ -306,15 +314,15 @@ func (l Layer) SwapNeuron(i int, n *Neuron, pl Layer) (*Neuron, error) {
 	return on, nil
 }
 
-func (l Layer) MustSwapNeuron(i int, n *Neuron, pl Layer) *Neuron {
-	on, err := l.SwapNeuron(i, n, pl)
+func (l Layer) MustSwapOutNeuron(i int, n *Neuron, pl Layer) *Neuron {
+	on, err := l.SwapOutNeuron(i, n, pl)
 	if err != nil {
 		panic(err)
 	}
 	return on
 }
 
-func (l Layer) SwapNeurons(i, j int, ns []*Neuron, pl Layer) ([]*Neuron, error) {
+func (l Layer) SwapOutNeurons(i, j int, ns []*Neuron, pl Layer) ([]*Neuron, error) {
 	if i == j {
 		return nil, nil
 	}
@@ -336,8 +344,8 @@ func (l Layer) SwapNeurons(i, j int, ns []*Neuron, pl Layer) ([]*Neuron, error) 
 	return ols, nil
 }
 
-func (l Layer) MustSwapNeurons(i, j int, ns []*Neuron, pl Layer) []*Neuron {
-	ons, err := l.SwapNeurons(i, j, ns, pl)
+func (l Layer) MustSwapOutNeurons(i, j int, ns []*Neuron, pl Layer) []*Neuron {
+	ons, err := l.SwapOutNeurons(i, j, ns, pl)
 	if err != nil {
 		panic(err)
 	}
@@ -396,6 +404,10 @@ func (n *Neuron) Equals(n2 *Neuron) (bool, string) {
 	}
 
 	return true, ""
+}
+
+func (n *Neuron) NumConnections() int {
+	return len(n.Connections)
 }
 
 func (n *Neuron) FirstConnection() *Connection {
@@ -496,7 +508,7 @@ func (n *Neuron) MustSetConnections(i, j int, cs []*Connection) {
 	}
 }
 
-func (n *Neuron) SwapConnection(i int, c *Connection) (*Connection, error) {
+func (n *Neuron) SwapOutConnection(i int, c *Connection) (*Connection, error) {
 	if i < 0 {
 		return nil, fmt.Errorf("cannot swap connection at index < 0 (requested %v)", i)
 	}
@@ -508,15 +520,15 @@ func (n *Neuron) SwapConnection(i int, c *Connection) (*Connection, error) {
 	return on, nil
 }
 
-func (n *Neuron) MustSwapConnection(i int, c *Connection) *Connection {
-	oc, err := n.SwapConnection(i, c)
+func (n *Neuron) MustSwapOutConnection(i int, c *Connection) *Connection {
+	oc, err := n.SwapOutConnection(i, c)
 	if err != nil {
 		panic(err)
 	}
 	return oc
 }
 
-func (n *Neuron) SwapConnections(i, j int, cs []*Connection) ([]*Connection, error) {
+func (n *Neuron) SwapOutConnections(i, j int, cs []*Connection) ([]*Connection, error) {
 	if i == j {
 		return nil, nil
 	}
@@ -538,8 +550,8 @@ func (n *Neuron) SwapConnections(i, j int, cs []*Connection) ([]*Connection, err
 	return ols, nil
 }
 
-func (n *Neuron) MustSwapConnections(i, j int, cs []*Connection) []*Connection {
-	ons, err := n.SwapConnections(i, j, cs)
+func (n *Neuron) MustSwapOutConnections(i, j int, cs []*Connection) []*Connection {
+	ons, err := n.SwapOutConnections(i, j, cs)
 	if err != nil {
 		panic(err)
 	}

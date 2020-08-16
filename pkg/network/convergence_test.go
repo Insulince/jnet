@@ -36,7 +36,7 @@ func Test_NetworkConverges(t *testing.T) {
 			NeuronMap:    []int{4, 4, 4, 4},
 			OutputLabels: []string{"1", "2", "3", "4"},
 		}
-		nw, _ := network.New(spec)
+		nw, _ := network.From(spec)
 
 		td := trainer.Data{
 			{
