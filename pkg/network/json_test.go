@@ -7,20 +7,21 @@ import (
 
 func Test_SerializeAndDeserializeAreInverses(t *testing.T) {
 	spec := Spec{
-		NeuronMap:    []int{4, 4, 4, 4},
-		InputLabels:  []string{"a", "b", "c", "d"},
-		OutputLabels: []string{"1", "2", "3", "4"},
+		NeuronMap:              []int{4, 4, 4, 4},
+		InputLabels:            []string{"a", "b", "c", "d"},
+		OutputLabels:           []string{"1", "2", "3", "4"},
+		ActivationFunctionName: activationfunction.NameSigmoid,
 	}
-	nw, _ := From(spec)
+	nw := MustFrom(spec)
 
-	_ = nw.ForwardPass([]float64{1, 0, 0, 0}, activationfunction.Sigmoid)
-	_ = nw.BackwardPass([]float64{1, 0, 0, 0})
+	nw.MustForwardPass([]float64{1, 0, 0, 0})
+	nw.MustBackwardPass([]float64{1, 0, 0, 0})
 	nw.RecordNudges()
 
 	jt := NewJsonTranslator()
-	s, _ := jt.Serialize(nw)
-	nw2, _ := jt.Deserialize(s)
-	s2, _ := jt.Serialize(nw2)
+	s := jt.MustSerialize(nw)
+	nw2 := jt.MustDeserialize(s)
+	s2 := jt.MustSerialize(nw2)
 
 	if equal, reason := nw.Equals(nw2); !equal {
 		t.Fatalf("original network and deserialized network do not equal each other: %v", reason)

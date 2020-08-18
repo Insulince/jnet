@@ -2,16 +2,29 @@ package network
 
 import (
 	"fmt"
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 )
 
 type Layer []*Neuron
 
-func NewLayer(qn int, pl Layer) Layer {
+func NewLayer(qn int, pl Layer, activationFunctionName activationfunction.Name) (Layer, error) {
 	l := Layer{}
 	for ni := 0; ni < qn; ni++ { // For every desired Neuron...
-		l = append(l, NewNeuron(pl))
+		n, err := NewNeuron(pl, activationFunctionName)
+		if err != nil {
+			return nil, err
+		}
+		l = append(l, n)
 	}
-	return l
+	return l, nil
+}
+
+func MustNewLayer(qn int, pl Layer, activationFunctionName activationfunction.Name) Layer {
+	n, err := NewLayer(qn, pl, activationFunctionName)
+	if err != nil {
+		panic(err)
+	}
+	return n
 }
 
 // ConnectTo connects all the neurons in l to all the neurons in pl using brand new connections.

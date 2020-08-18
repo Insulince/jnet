@@ -3,7 +3,6 @@ package trainer
 import (
 	"errors"
 	"fmt"
-	"github.com/Insulince/jnet/pkg/activation-function"
 	"github.com/Insulince/jnet/pkg/network"
 	"math"
 	"math/rand"
@@ -12,12 +11,11 @@ import (
 
 // TODO(justin): Add MinLossCutoff
 type Configuration struct {
-	LearningRate       float64
-	Iterations         int
-	MiniBatchSize      int
-	AverageLossCutoff  float64
-	ActivationFunction activationfunction.ActivationFunction
-	Timeout            time.Duration
+	LearningRate      float64
+	Iterations        int
+	MiniBatchSize     int
+	AverageLossCutoff float64
+	Timeout           time.Duration
 }
 
 type Datum struct {
@@ -91,7 +89,7 @@ func (t *Trainer) Train(nw network.Network) error {
 		for _, td := range miniBatch {
 			nw.ResetForPass(false)
 
-			err := nw.ForwardPass(td.Data, t.Configuration.ActivationFunction)
+			err := nw.ForwardPass(td.Data)
 			if err != nil {
 				return err
 			}

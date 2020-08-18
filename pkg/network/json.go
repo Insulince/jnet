@@ -3,6 +3,7 @@ package network
 import (
 	"encoding/json"
 	"fmt"
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 )
 
 type jsonTranslator struct {
@@ -98,30 +99,32 @@ func (nw *Network) UnmarshalJSON(data []byte) error {
 // jsonNeuron is private struct for mapping all fields of a Neuron to exported fields so that they may be exposed in a
 // json body by the JSON marshaller.
 type jsonNeuron struct {
-	Connections []*Connection `json:"connections"`
-	Label       string        `json:"label"`
-	Value       float64       `json:"value"`
-	WSum        float64       `json:"wSum"`
-	Bias        float64       `json:"bias"`
-	DLossDValue float64       `json:"dLossDValue"`
-	DLossDBias  float64       `json:"dLossDBias"`
-	DValueDNet  float64       `json:"dValueDNet"`
-	DNetDBias   float64       `json:"dNetDBias"`
-	BiasNudges  []float64     `json:"biasNudges"`
+	Connections            []*Connection           `json:"connections"`
+	ActivationFunctionName activationfunction.Name `json:"activationFunctionName"`
+	Label                  string                  `json:"label"`
+	Value                  float64                 `json:"value"`
+	WSum                   float64                 `json:"wSum"`
+	Bias                   float64                 `json:"bias"`
+	DLossDValue            float64                 `json:"dLossDValue"`
+	DLossDBias             float64                 `json:"dLossDBias"`
+	DValueDNet             float64                 `json:"dValueDNet"`
+	DNetDBias              float64                 `json:"dNetDBias"`
+	BiasNudges             []float64               `json:"biasNudges"`
 }
 
 func (n *Neuron) MarshalJSON() ([]byte, error) {
 	j, err := json.Marshal(jsonNeuron{
-		Connections: n.Connections,
-		Label:       n.label,
-		Value:       n.value,
-		WSum:        n.wSum,
-		Bias:        n.bias,
-		DLossDValue: n.dLossDValue,
-		DLossDBias:  n.dLossDBias,
-		DValueDNet:  n.dValueDNet,
-		DNetDBias:   n.dNetDBias,
-		BiasNudges:  n.biasNudges,
+		Connections:            n.Connections,
+		ActivationFunctionName: n.ActivationFunctionName,
+		Label:                  n.label,
+		Value:                  n.value,
+		WSum:                   n.wSum,
+		Bias:                   n.bias,
+		DLossDValue:            n.dLossDValue,
+		DLossDBias:             n.dLossDBias,
+		DValueDNet:             n.dValueDNet,
+		DNetDBias:              n.dNetDBias,
+		BiasNudges:             n.biasNudges,
 	})
 	if err != nil {
 		return nil, err
@@ -137,6 +140,7 @@ func (n *Neuron) UnmarshalJSON(j []byte) error {
 	}
 
 	n.Connections = t.Connections
+	n.ActivationFunctionName = t.ActivationFunctionName
 	n.label = t.Label
 	n.value = t.Value
 	n.wSum = t.WSum
@@ -146,6 +150,12 @@ func (n *Neuron) UnmarshalJSON(j []byte) error {
 	n.dValueDNet = t.DValueDNet
 	n.dNetDBias = t.DNetDBias
 	n.biasNudges = t.BiasNudges
+
+	af, err := activationfunction.GetFunction(n.ActivationFunctionName)
+	if err != nil {
+		return err
+	}
+	n.activationFunction = af
 
 	return nil
 }

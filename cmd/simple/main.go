@@ -349,8 +349,9 @@ func main() {
 	}
 
 	nw, err := network.From(network.Spec{
-		NeuronMap:    []int{25, 16, 16, 10},
-		OutputLabels: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+		NeuronMap:              []int{25, 16, 16, 10},
+		OutputLabels:           []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+		ActivationFunctionName: activationfunction.NameSigmoid,
 	})
 	if err != nil {
 		log.Fatalln(err)
@@ -358,12 +359,11 @@ func main() {
 
 	// TODO(justin): Make this less overly fitted
 	trainConfig := trainer.Configuration{
-		LearningRate:       0.1,
-		Iterations:         2500000,
-		MiniBatchSize:      32,
-		AverageLossCutoff:  0.5,
-		ActivationFunction: activationfunction.Sigmoid,
-		Timeout:            1 * time.Minute,
+		LearningRate:      0.1,
+		Iterations:        2500000,
+		MiniBatchSize:     32,
+		AverageLossCutoff: 0.5,
+		Timeout:           1 * time.Minute,
 	}
 
 	t := trainer.New(trainConfig, trainingData)

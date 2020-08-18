@@ -2,11 +2,15 @@ package network
 
 import (
 	"fmt"
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 	"math/rand"
 )
 
 type Neuron struct {
 	Connections []*Connection
+
+	ActivationFunctionName activationfunction.Name
+	activationFunction     activationfunction.ActivationFunction
 
 	label string
 	value float64
@@ -21,12 +25,27 @@ type Neuron struct {
 	biasNudges []float64
 }
 
-func NewNeuron(pl Layer) *Neuron {
+func NewNeuron(pl Layer, activationFunctionName activationfunction.Name) (*Neuron, error) {
+	af, err := activationfunction.GetFunction(activationFunctionName)
+	if err != nil {
+		return nil, err
+	}
+
 	n := Neuron{
-		bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
+		ActivationFunctionName: activationFunctionName,
+		activationFunction:     af,
+		bias:                   rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
 	}
 	n.ConnectTo(pl)
-	return &n
+	return &n, nil
+}
+
+func MustNewNeuron(pl Layer, activationFunctionName activationfunction.Name) *Neuron {
+	n, err := NewNeuron(pl, activationFunctionName)
+	if err != nil {
+		panic(err)
+	}
+	return n
 }
 
 func (n *Neuron) SetLabel(label string) {

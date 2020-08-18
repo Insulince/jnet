@@ -15,16 +15,23 @@ type Network []Layer
 //   contains the value 5, that would mean that the third Layer of the network should contain 5 neurons.
 // - InputLabels defines the labels for each of the input neurons. len(InputLabels) must equal NeuronMap[0].
 // - OutputLabels defines the labels for each of the output neurons. len(OutputLabels) must equal
-//    NeuronMap[len(NeuronMap)-1]
+//     NeuronMap[len(NeuronMap)-1]
+// - ActivationFunctionName is a name corresponding to an ActivationFunction found in the activationfunction package.
+//     All neurons created for this network will use this acitvation function
 type Spec struct {
-	NeuronMap    []int
-	InputLabels  []string
-	OutputLabels []string
+	NeuronMap              []int
+	InputLabels            []string
+	OutputLabels           []string
+	ActivationFunctionName activationfunction.Name
 }
 
 // From creates a new Network from the construction details in spec.
 func From(spec Spec) (Network, error) {
 	nw := Network{}
+
+	if spec.ActivationFunctionName == "" {
+		return nil, errors.New("must provide an activation function name")
+	}
 
 	if spec.NeuronMap == nil {
 		return nil, errors.New("must provide a neuron map")
@@ -33,11 +40,19 @@ func From(spec Spec) (Network, error) {
 		qn := spec.NeuronMap[li]
 
 		if li == 0 {
-			nw = append(nw, NewLayer(qn, nil))
+			l, err := NewLayer(qn, nil, spec.ActivationFunctionName)
+			if err != nil {
+				return nil, err
+			}
+			nw = append(nw, l)
 			continue
 		}
 		pl := nw[li-1]
-		nw = append(nw, NewLayer(qn, pl))
+		l, err := NewLayer(qn, pl, spec.ActivationFunctionName)
+		if err != nil {
+			return nil, err
+		}
+		nw = append(nw, l)
 	}
 
 	if spec.InputLabels == nil {
@@ -75,7 +90,7 @@ func (nw Network) Predict(input []float64) (string, error) {
 
 	nw.ResetForPass(true)
 
-	err := nw.ForwardPass(input, activationfunction.Sigmoid) // TODO Defaults to Sigmoid, should this be changed?
+	err := nw.ForwardPass(input)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +106,7 @@ func (nw Network) MustPredict(input []float64) string {
 	return prediction
 }
 
-func (nw Network) ForwardPass(input []float64, activationFunction activationfunction.ActivationFunction) error {
+func (nw Network) ForwardPass(input []float64) error {
 	err := nw.FirstLayer().SetNeuronValues(input)
 	if err != nil {
 		return err
@@ -107,8 +122,8 @@ func (nw Network) ForwardPass(input []float64, activationFunction activationfunc
 			}
 
 			net := n.wSum + n.bias
-			n.value = activationFunction(net)
-			n.dValueDNet = calculus.Diff((func(float64) float64)(activationFunction), net)
+			n.value = n.activationFunction(net)
+			n.dValueDNet = calculus.Diff((func(float64) float64)(n.activationFunction), net)
 			n.dNetDBias = 1.0
 
 			for ci := range n.Connections {
@@ -122,8 +137,8 @@ func (nw Network) ForwardPass(input []float64, activationFunction activationfunc
 	return nil
 }
 
-func (nw Network) MustForwardPass(input []float64, activationFunction activationfunction.ActivationFunction) {
-	err := nw.ForwardPass(input, activationFunction)
+func (nw Network) MustForwardPass(input []float64) {
+	err := nw.ForwardPass(input)
 	if err != nil {
 		panic(err)
 	}
