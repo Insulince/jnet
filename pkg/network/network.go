@@ -119,18 +119,14 @@ func (nw Network) ForwardPass(input []float64) error {
 			for ci := range n.Connections {
 				c := n.Connections[ci]
 				n.wSum += c.To.value * c.weight
+				c.dNetDWeight = c.To.value
+				c.dNetDPrevValue = c.weight
 			}
 
 			net := n.wSum + n.bias
 			n.value = n.activationFunction(net)
 			n.dValueDNet = calculus.Diff((func(float64) float64)(n.activationFunction), net)
 			n.dNetDBias = 1.0
-
-			for ci := range n.Connections {
-				c := n.Connections[ci]
-				c.dNetDWeight = c.To.value
-				c.dNetDPrevValue = c.weight
-			}
 		}
 	}
 

@@ -26,17 +26,14 @@ type Neuron struct {
 }
 
 func NewNeuron(pl Layer, activationFunctionName activationfunction.Name) (*Neuron, error) {
-	af, err := activationfunction.GetFunction(activationFunctionName)
+	n := Neuron{
+		bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
+	}
+	n.ConnectTo(pl)
+	err := n.SetActivationFunction(activationFunctionName)
 	if err != nil {
 		return nil, err
 	}
-
-	n := Neuron{
-		ActivationFunctionName: activationFunctionName,
-		activationFunction:     af,
-		bias:                   rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
-	}
-	n.ConnectTo(pl)
 	return &n, nil
 }
 
@@ -58,6 +55,24 @@ func (n *Neuron) SetValue(value float64) {
 
 func (n *Neuron) SetBias(bias float64) {
 	n.bias = bias
+}
+
+func (n *Neuron) SetConnectionWeights(weights []float64) error {
+	if len(weights) != len(n.Connections) {
+		return fmt.Errorf("invalid number of weights provided (%v), does not match number of connections in neuron (%v)", len(weights), len(n.Connections))
+	}
+
+	for ni := range n.Connections {
+		n.Connections[ni].SetWeight(weights[ni])
+	}
+	return nil
+}
+
+func (n *Neuron) MustSetConnectionWeights(weights []float64) {
+	err := n.SetConnectionWeights(weights)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // ConnectTo connects n to all the neurons in pl using brand new connections.
@@ -134,5 +149,24 @@ func (n *Neuron) adjustWeights(learningRate float64) {
 
 	for ci := range n.Connections {
 		n.Connections[ci].adjustWeight(learningRate)
+	}
+}
+
+func (n *Neuron) SetActivationFunction(activationFunctionName activationfunction.Name) error {
+	n.ActivationFunctionName = activationFunctionName
+
+	af, err := activationfunction.GetFunction(activationFunctionName)
+	if err != nil {
+		return err
+	}
+	n.activationFunction = af
+
+	return nil
+}
+
+func (n *Neuron) MustSetActivationFunction(activationFunctionName activationfunction.Name) {
+	err := n.SetActivationFunction(activationFunctionName)
+	if err != nil {
+		panic(err)
 	}
 }

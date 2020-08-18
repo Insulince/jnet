@@ -45,7 +45,8 @@ func noop(x float64) float64 {
 }
 
 func sigmoid(x float64) float64 {
-	return 1 / (1 + math.Pow(math.E, -x))
+	// NOTE(justin): This is the function for sigmoid from (-1, 1), NOT from (0, 1)
+	return 2/(1+math.Pow(math.E, -x)) - 1
 }
 
 func tanh(x float64) float64 {

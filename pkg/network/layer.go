@@ -70,14 +70,47 @@ func (l Layer) SetNeuronValues(values []float64) error {
 
 	for ni := range l {
 		l[ni].SetValue(values[ni])
-		l[ni].value = values[ni]
 	}
-
 	return nil
 }
 
 func (l Layer) MustSetNeuronValues(values []float64) {
 	err := l.SetNeuronValues(values)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (l Layer) SetNeuronBiases(biases []float64) error {
+	if len(l) != len(biases) {
+		return fmt.Errorf("invalid number of biases provided (%v), does not match number of neurons in layer (%v)", len(biases), len(l))
+	}
+
+	for ni := range l {
+		l[ni].SetBias(biases[ni])
+	}
+	return nil
+}
+
+func (l Layer) MustSetNeuronBiases(biases []float64) {
+	err := l.SetNeuronBiases(biases)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (l Layer) SetActivationFunction(activationFunctionName activationfunction.Name) error {
+	for ni := range l {
+		err := l[ni].SetActivationFunction(activationFunctionName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (l Layer) MustSetActivationFunction(activationFunctionName activationfunction.Name) {
+	err := l.SetActivationFunction(activationFunctionName)
 	if err != nil {
 		panic(err)
 	}
