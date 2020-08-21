@@ -19,12 +19,8 @@ type Connection struct {
 func NewConnection(pn *Neuron) *Connection {
 	return &Connection{
 		To:     pn,
-		weight: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
+		weight: rand.Float64()*2 - 1, // Initialize randomly to [-1, 1)
 	}
-}
-
-func (c *Connection) SetWeight(weight float64) {
-	c.weight = weight
 }
 
 func (c *Connection) resetForPass(andBatch bool) {

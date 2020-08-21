@@ -83,6 +83,48 @@ func MustFrom(spec Spec) Network {
 	return nw
 }
 
+// Reconnect connects all the neurons in nw to all the neurons in their previous layers using brand new connections.
+// This function will scan over the entire network and recreate all connections between contiguous layers.
+func (nw Network) Reconnect() {
+	for li := len(nw) - 1; li > 0; li-- {
+		pl := nw[li-1]
+		nw[li].ConnectTo(pl)
+	}
+}
+
+// ReconnectWith connects all the neurons in nw to all the neurons in their previous layers using the provided
+// connections. cs is an LxMxN slice of connections where L is the number of layers in n, M is the number of neurons in
+// l, and n is the number of neurons in pl. If this is not honored, an error will be returned.
+func (nw Network) ReconnectWith(cs [][][]*Connection) error {
+	if len(cs) != len(nw) {
+		return fmt.Errorf("cannot reconnect network using provided connections: number of provided sets of sets of connections (%v) does not match number of layers in network (%v)", len(cs), len(nw))
+	}
+
+	for li := len(nw) - 1; li > 0; li-- {
+		pl := nw[li-1]
+		err := nw[li].ConnectWith(pl, cs[li])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ReconnectNeurons connects all neurons in nw to all neurons in their previous layers using the existing connections.
+// It only updates what each neurons Connection.To points to, all other values are preserved.
+func (nw Network) ReconnectNeurons() error {
+	for li := len(nw) - 1; li > 0; li-- {
+		pl := nw[li-1]
+		err := nw[li].ConnectNeurons(pl)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (nw Network) Predict(input []float64) (string, error) {
 	if len(input) != len(nw.FirstLayer()) {
 		return "", fmt.Errorf("invalid number of values provided (%v), does no match number of neurons in Layer (%v)", len(input), len(nw.FirstLayer()))
@@ -148,11 +190,11 @@ func (nw Network) BackwardPass(truth []float64) error {
 		return fmt.Errorf("cannot perform backwards pass: truth data length (%v) is not of same length as last layer of neurons (%v)", len(truth), len(ll))
 	}
 
-	for i := range ll {
-		ll[i].dLossDValue = 2 * (ll[i].value - truth[i])
-		ll[i].dLossDBias = ll[i].dLossDValue * ll[i].dValueDNet * ll[i].dNetDBias
-		for ci := range ll[i].Connections { // For every Connection from this Layer to its previous Layer's neurons...
-			ll[i].Connections[ci].dLossDWeight = ll[i].dLossDValue * ll[i].dValueDNet * ll[i].Connections[ci].dNetDWeight
+	for ni := range ll {
+		ll[ni].dLossDValue = 2 * (ll[ni].value - truth[ni])
+		ll[ni].dLossDBias = ll[ni].dLossDValue * ll[ni].dValueDNet * ll[ni].dNetDBias
+		for ci := range ll[ni].Connections { // For every Connection from this Layer to its previous Layer's neurons...
+			ll[ni].Connections[ci].dLossDWeight = ll[ni].dLossDValue * ll[ni].dValueDNet * ll[ni].Connections[ci].dNetDWeight
 		}
 	}
 

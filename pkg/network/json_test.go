@@ -23,8 +23,8 @@ func Test_SerializeAndDeserializeAreInverses(t *testing.T) {
 	nw2 := jt.MustDeserialize(s)
 	s2 := jt.MustSerialize(nw2)
 
-	if equal, reason := nw.Equals(nw2); !equal {
-		t.Fatalf("original network and deserialized network do not equal each other: %v", reason)
+	if err := nw.Equals(nw2); err != nil {
+		t.Fatalf("original network and deserialized network do not equal each other: %v", err)
 	}
 
 	if s != s2 {

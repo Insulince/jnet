@@ -1,3 +1,9 @@
+// Program rohrer is a manually constructed neural network which represents the example created by Brandon Rohrer in his
+// excellent introduction to Deep Neural Networks found here: https://youtu.be/ILsA4nyG7I0?t=1371
+// Of course, this is an extremely contrived neural network used only for educational purposes, but the theory behind it
+// should hold true for jnet as well, which it does.
+// Each of the possible outcomes have input scenarios defined at the end of the main function. Simply uncomment one
+// and comment out the previous one to test the different scenarios.
 package main
 
 import (
@@ -13,12 +19,6 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-// This is a manually constructed neural network which represents the example created by Brandon Rohrer in his excellent
-// introduction to Deep Neural Networks found here: https://youtu.be/ILsA4nyG7I0?t=1371
-// Of course, this is an extremely contrived neural network used only for educational purposes, but the theory behind it
-// should hold true for jnet as well, which it does.
-// Each of the possible outcomes have input scenarios defined at the end of the main function. Simply uncomment one
-// and comment out the previous one to test the different scenarios.
 func main() {
 	spec := network.Spec{
 		NeuronMap:              []int{4, 4, 4, 8, 4},
@@ -30,13 +30,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	nw[0].MustSetNeuronBiases([]float64{0, 0, 0, 0})
-	nw[1].MustSetNeuronBiases([]float64{0, 0, 0, 0})
-	nw[2].MustSetNeuronBiases([]float64{0, 0, 0, 0})
-	nw[3].MustSetNeuronBiases([]float64{0, 0, 0, 0, 0, 0, 0, 0})
-	nw[4].MustSetNeuronBiases([]float64{0, 0, 0, 0})
+	nw.SetNeuronBiasesTo(0)
+	nw.SetNeuronValuesTo(0)
+	nw.SetConnectionWeightsTo(0)
 
-	nw[3].MustSetActivationFunction(activationfunction.NameRelu)
+	nw[3].MustSetNeuronActivationFunctionsTo(activationfunction.NameRelu)
 
 	nw[1][0].MustSetConnectionWeights([]float64{1, 0, 0, 1})
 	nw[1][1].MustSetConnectionWeights([]float64{0, 1, 1, 0})

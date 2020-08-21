@@ -1,3 +1,7 @@
+// Package activationfunction is for isolating the concept of an activation function into its own area. Activation
+// functions are used in neural networks to provide stability to their inputs and outputs through non-linearization.
+// What that means is that a neuron which is loaded up with tons of values in its weighted sum will be sent through
+// an activation function which sets a bound on it to prevent this large value from influencing the rest of the network.
 package activationfunction
 
 import (
@@ -40,19 +44,22 @@ func ErrNotFound(name Name) error {
 	return fmt.Errorf("no activation function found with name \"%v\"", name)
 }
 
+// Range: [0, 0]
 func noop(x float64) float64 {
 	return 0
 }
 
+// Range: (1, 1)
 func sigmoid(x float64) float64 {
-	// NOTE(justin): This is the function for sigmoid from (-1, 1), NOT from (0, 1)
 	return 2/(1+math.Pow(math.E, -x)) - 1
 }
 
+// Range: (-1, 1)
 func tanh(x float64) float64 {
 	return math.Tanh(x)
 }
 
+// Range: [0, +inf) UNBOUNDED
 func relu(x float64) float64 {
 	if x > 0 {
 		return x
@@ -60,6 +67,7 @@ func relu(x float64) float64 {
 	return 0
 }
 
+// Range: (-inf, +inf) UNBOUNDED
 func linear(x float64) float64 {
 	return x
 }

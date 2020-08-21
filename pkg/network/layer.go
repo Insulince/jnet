@@ -52,7 +52,7 @@ func (l Layer) ConnectWith(pl Layer, cs [][]*Connection) error {
 }
 
 // ConnectNeurons connects all neurons in l to all neurons in pl using the existing connections. It only updates what
-// each neurons Connection.To points to.
+// each neurons Connection.To points to. All other values are preserved.
 func (l Layer) ConnectNeurons(pl Layer) error {
 	for ni := range l {
 		err := l[ni].ConnectNeurons(pl)
@@ -61,78 +61,6 @@ func (l Layer) ConnectNeurons(pl Layer) error {
 		}
 	}
 	return nil
-}
-
-func (l Layer) SetNeuronValues(values []float64) error {
-	if len(l) != len(values) {
-		return fmt.Errorf("invalid number of values provided (%v), does not match number of neurons in layer (%v)", len(values), len(l))
-	}
-
-	for ni := range l {
-		l[ni].SetValue(values[ni])
-	}
-	return nil
-}
-
-func (l Layer) MustSetNeuronValues(values []float64) {
-	err := l.SetNeuronValues(values)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (l Layer) SetNeuronBiases(biases []float64) error {
-	if len(l) != len(biases) {
-		return fmt.Errorf("invalid number of biases provided (%v), does not match number of neurons in layer (%v)", len(biases), len(l))
-	}
-
-	for ni := range l {
-		l[ni].SetBias(biases[ni])
-	}
-	return nil
-}
-
-func (l Layer) MustSetNeuronBiases(biases []float64) {
-	err := l.SetNeuronBiases(biases)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (l Layer) SetActivationFunction(activationFunctionName activationfunction.Name) error {
-	for ni := range l {
-		err := l[ni].SetActivationFunction(activationFunctionName)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (l Layer) MustSetActivationFunction(activationFunctionName activationfunction.Name) {
-	err := l.SetActivationFunction(activationFunctionName)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (l Layer) SetNeuronLabels(labels []string) error {
-	if len(l) != len(labels) {
-		return fmt.Errorf("invalid number of labels provided (%v), does not match number of neurons in Layer (%v)", len(labels), len(l))
-	}
-
-	for ni := range l {
-		l[ni].SetLabel(labels[ni])
-	}
-
-	return nil
-}
-
-func (l Layer) MustSetNeuronLabels(labels []string) {
-	err := l.SetNeuronLabels(labels)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (l Layer) resetForPass(andBatch bool) {

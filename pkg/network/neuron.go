@@ -14,8 +14,9 @@ type Neuron struct {
 
 	label string
 	value float64
-	wSum  float64
 	bias  float64
+
+	wSum float64
 
 	dLossDValue float64 // The effect this Neuron's value has on the loss.
 	dLossDBias  float64 // The effect this Neuron's bias has on the loss.
@@ -27,7 +28,7 @@ type Neuron struct {
 
 func NewNeuron(pl Layer, activationFunctionName activationfunction.Name) (*Neuron, error) {
 	n := Neuron{
-		bias: rand.Float64()*2 - 1, // Initialize randomly to [-1.0, 1.0)
+		bias: rand.Float64()*2 - 1, // Initialize randomly to [-1, 1)
 	}
 	n.ConnectTo(pl)
 	err := n.SetActivationFunction(activationFunctionName)
@@ -43,36 +44,6 @@ func MustNewNeuron(pl Layer, activationFunctionName activationfunction.Name) *Ne
 		panic(err)
 	}
 	return n
-}
-
-func (n *Neuron) SetLabel(label string) {
-	n.label = label
-}
-
-func (n *Neuron) SetValue(value float64) {
-	n.value = value
-}
-
-func (n *Neuron) SetBias(bias float64) {
-	n.bias = bias
-}
-
-func (n *Neuron) SetConnectionWeights(weights []float64) error {
-	if len(weights) != len(n.Connections) {
-		return fmt.Errorf("invalid number of weights provided (%v), does not match number of connections in neuron (%v)", len(weights), len(n.Connections))
-	}
-
-	for ni := range n.Connections {
-		n.Connections[ni].SetWeight(weights[ni])
-	}
-	return nil
-}
-
-func (n *Neuron) MustSetConnectionWeights(weights []float64) {
-	err := n.SetConnectionWeights(weights)
-	if err != nil {
-		panic(err)
-	}
 }
 
 // ConnectTo connects n to all the neurons in pl using brand new connections.
@@ -98,14 +69,14 @@ func (n *Neuron) ConnectWith(pl Layer, pcs []*Connection) error {
 }
 
 // ConnectNeurons connects n to all neurons in pl using the existing connections. It only updates what n.Connection.To
-// points to.
+// points to. All other values are preserved.
 func (n *Neuron) ConnectNeurons(pl Layer) error {
 	if len(n.Connections) != len(pl) {
 		return fmt.Errorf("cannot connect neuron with previous layer using existing connections: number of existing connections (%v) does not match number of neurons in previous layer (%v)", len(n.Connections), len(pl))
 	}
 
-	for ni := range n.Connections {
-		n.Connections[ni].To = pl[ni]
+	for ci := range n.Connections {
+		n.Connections[ci].To = pl[ci]
 	}
 	return nil
 }
@@ -149,24 +120,5 @@ func (n *Neuron) adjustWeights(learningRate float64) {
 
 	for ci := range n.Connections {
 		n.Connections[ci].adjustWeight(learningRate)
-	}
-}
-
-func (n *Neuron) SetActivationFunction(activationFunctionName activationfunction.Name) error {
-	n.ActivationFunctionName = activationFunctionName
-
-	af, err := activationfunction.GetFunction(activationFunctionName)
-	if err != nil {
-		return err
-	}
-	n.activationFunction = af
-
-	return nil
-}
-
-func (n *Neuron) MustSetActivationFunction(activationFunctionName activationfunction.Name) {
-	err := n.SetActivationFunction(activationFunctionName)
-	if err != nil {
-		panic(err)
 	}
 }

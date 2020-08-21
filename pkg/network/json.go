@@ -84,8 +84,8 @@ func (nw *Network) UnmarshalJSON(data []byte) error {
 	// This is not desirable and to keep the JSON small the neuron portion of the connection is ignored via `json:"-"`.
 	// However when we unmarshal, we want to get this relationship back, so we need to hook everything back up which is
 	// done via Layer.ConnectNeurons here.
-	for i := len(nnw) - 1; i > 0; i-- { // For every layer starting from the last EXCEPT the first...
-		err := nnw[i].ConnectNeurons(nnw[i-1]) // Connect the neurons in this layer to the neurons in the previous layer
+	for li := len(nnw) - 1; li > 0; li-- { // For every layer starting from the last EXCEPT the first...
+		err := nnw[li].ConnectNeurons(nnw[li-1]) // Connect the neurons in this layer to the neurons in the previous layer
 		if err != nil {
 			return err
 		}
