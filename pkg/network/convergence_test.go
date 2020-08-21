@@ -60,8 +60,8 @@ func Test_NetworkConverges(t *testing.T) {
 
 		tc := trainer.Configuration{
 			LearningRate:      0.1,
-			Iterations:        2500000,
 			MiniBatchSize:     len(td),
+			MaxIterations:     2500000,
 			AverageLossCutoff: 0.1,
 		}
 

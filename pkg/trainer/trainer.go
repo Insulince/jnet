@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-// TODO(justin): Add MinLossCutoff
 type Configuration struct {
 	LearningRate      float64
-	Iterations        int
 	MiniBatchSize     int
 	AverageLossCutoff float64
+	MinLossCutoff     float64
+	MaxIterations     int
 	Timeout           time.Duration
 }
 
@@ -77,7 +77,8 @@ func (t *Trainer) Train(nw network.Network) error {
 
 	totalLoss, averageLoss, minMiniBatchLoss, maxMiniBatchLoss := 0.0, 0.0, float64(math.MaxInt32), float64(-math.MaxInt32)
 
-	for ti := 0; ti < t.Configuration.Iterations; ti++ { // For every desired training iteration...
+	ti := 0
+	for { // For every desired training iteration...
 		miniBatch, err := t.Data.MiniBatch(t.Configuration.MiniBatchSize)
 		if err != nil {
 			return err
@@ -125,11 +126,6 @@ func (t *Trainer) Train(nw network.Network) error {
 			fmt.Printf(" | %5f %5f %5f - %v\n", averageLoss, minMiniBatchLoss, maxMiniBatchLoss, ti)
 		}
 
-		if averageLoss < t.Configuration.AverageLossCutoff {
-			fmt.Printf("\nReached average loss cutoff limit, ending training process...\n")
-			break
-		}
-
 		nw.AdjustWeights(t.Configuration.LearningRate)
 
 		select {
@@ -137,6 +133,23 @@ func (t *Trainer) Train(nw network.Network) error {
 			return err
 		default:
 		}
+
+		if averageLoss < t.Configuration.AverageLossCutoff {
+			fmt.Printf("\nReached average loss cutoff limit, ending training process...\n")
+			break
+		}
+
+		if minMiniBatchLoss < t.Configuration.MinLossCutoff {
+			fmt.Printf("\nReached minimum loss cutoff limit, ending training process...\n")
+			break
+		}
+
+		if ti > t.Configuration.MaxIterations {
+			fmt.Printf("\nReached maximum iterations, ending training process...\n")
+			break
+		}
+
+		ti++
 	}
 
 	fmt.Println("Training process ended.")

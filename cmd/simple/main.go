@@ -368,11 +368,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// TODO(justin): Make this less overly fitted
 	trainConfig := trainer.Configuration{
 		LearningRate:      0.1,
-		Iterations:        2500000,
 		MiniBatchSize:     32,
+		MaxIterations:     2500000,
 		AverageLossCutoff: 0.5,
 		Timeout:           1 * time.Minute,
 	}
