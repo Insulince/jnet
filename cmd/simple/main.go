@@ -396,9 +396,9 @@ func main() {
 	}
 
 	fmt.Println("Prediction (should be 7):")
-	prediction, err := nw.Predict(input)
+	prediction, value, err := nw.Predict(input)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(prediction)
+	fmt.Println(prediction, value)
 }

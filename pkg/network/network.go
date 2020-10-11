@@ -125,27 +125,29 @@ func (nw Network) ReconnectNeurons() error {
 	return nil
 }
 
-func (nw Network) Predict(input []float64) (string, error) {
+func (nw Network) Predict(input []float64) (string, float64, error) {
 	if len(input) != len(nw.FirstLayer()) {
-		return "", fmt.Errorf("invalid number of values provided (%v), does no match number of neurons in Layer (%v)", len(input), len(nw.FirstLayer()))
+		return "", 0, fmt.Errorf("invalid number of values provided (%v), does no match number of neurons in Layer (%v)", len(input), len(nw.FirstLayer()))
 	}
 
 	nw.ResetForPass(true)
 
 	err := nw.ForwardPass(input)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
-	return nw.HighestConfidenceNeuron().label, nil
+	hcn := nw.HighestConfidenceNeuron()
+
+	return hcn.label, hcn.value, nil
 }
 
-func (nw Network) MustPredict(input []float64) string {
-	prediction, err := nw.Predict(input)
+func (nw Network) MustPredict(input []float64) (string, float64) {
+	prediction, value, err := nw.Predict(input)
 	if err != nil {
 		panic(err)
 	}
-	return prediction
+	return prediction, value
 }
 
 func (nw Network) ForwardPass(input []float64) error {

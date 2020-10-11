@@ -71,9 +71,9 @@ func main() {
 		//1, -1, 1, -1, // Diagonal
 		//-1, 1, -1, 1, // Diagonal (alt)
 	}
-	prediction, err := nw.Predict(input)
+	prediction, value, err := nw.Predict(input)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(prediction)
+	fmt.Println(prediction, value)
 }
