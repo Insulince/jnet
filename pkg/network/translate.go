@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"github.com/pkg/errors"
+	"io/ioutil"
 )
 
 type (
@@ -40,14 +41,16 @@ func WithCompression() TranslatorOption {
 			if err := gz.Close(); err != nil {
 				return nil, errors.Wrap(err, "gzip close")
 			}
-			return b.Bytes(), nil
+			bs = b.Bytes()
+			return bs, nil
 		},
 		Deserialize: func(bs []byte) ([]byte, error) {
 			gz, err := gzip.NewReader(bytes.NewBuffer(bs))
 			if err != nil {
 				return nil, errors.Wrap(err, "gzip new reader")
 			}
-			if _, err := gz.Read(bs); err != nil {
+			bs, err = ioutil.ReadAll(gz)
+			if err != nil {
 				return nil, errors.Wrap(err, "gzip read")
 			}
 			if err := gz.Close(); err != nil {
