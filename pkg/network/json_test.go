@@ -27,7 +27,7 @@ func Test_SerializeAndDeserializeAreInverses(t *testing.T) {
 		t.Fatalf("original network and deserialized network do not equal each other: %v", err)
 	}
 
-	if s != s2 {
+	if string(s) != string(s2) {
 		t.Fatalf("original JSON encoding and deserialized network JSON encoding do not equal each other")
 	}
 }
