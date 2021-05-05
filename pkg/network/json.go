@@ -2,51 +2,68 @@ package network
 
 import (
 	"encoding/json"
-	"fmt"
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+	"github.com/pkg/errors"
 )
 
 type jsonTranslator struct {
+	opts []TranslatorOption
 }
 
 var _ Translator = new(jsonTranslator)
 
-func NewJsonTranslator() Translator {
-	return jsonTranslator{}
+func NewJsonTranslator(opts ...TranslatorOption) Translator {
+	return jsonTranslator{
+		opts: opts,
+	}
 }
 
-func (jt jsonTranslator) Serialize(n Network) (string, error) {
-	raw, err := json.Marshal(n)
+func (jt jsonTranslator) Serialize(nw Network) ([]byte, error) {
+	bs, err := json.Marshal(nw)
 	if err != nil {
-		return "", fmt.Errorf("json marshal: %w", err)
+		return nil, errors.Wrap(err, "json marshalling")
 	}
-	return string(raw), nil
+
+	for i, opt := range jt.opts {
+		bs, err = opt.Serialize(bs)
+		if err != nil {
+			return nil, errors.Wrapf(err, "translator serialize option %v", i)
+		}
+	}
+
+	return bs, nil
 }
 
-func (jt jsonTranslator) MustSerialize(n Network) string {
-	raw, err := json.Marshal(n)
+func (jt jsonTranslator) MustSerialize(nw Network) []byte {
+	bs, err := jt.Serialize(nw)
 	if err != nil {
-		panic(fmt.Errorf("json marshal: %w", err))
+		panic(errors.Wrap(err, "must serialize"))
 	}
-	return string(raw)
+	return bs
 }
 
-func (jt jsonTranslator) Deserialize(s string) (Network, error) {
-	var n Network
-	err := json.Unmarshal([]byte(s), &n)
-	if err != nil {
-		return Network{}, fmt.Errorf("json unmarshal: %w", err)
+func (jt jsonTranslator) Deserialize(bs []byte) (Network, error) {
+	var err error
+	for i, opt := range jt.opts {
+		bs, err = opt.Deserialize(bs)
+		if err != nil {
+			return nil, errors.Wrapf(err, "translator deserialize option %v", i)
+		}
 	}
-	return n, nil
+
+	var nw Network
+	if err := json.Unmarshal(bs, &nw); err != nil {
+		return Network{}, errors.Wrap(err, "json unmarshalling")
+	}
+	return nw, nil
 }
 
-func (jt jsonTranslator) MustDeserialize(s string) Network {
-	var n Network
-	err := json.Unmarshal([]byte(s), &n)
+func (jt jsonTranslator) MustDeserialize(bs []byte) Network {
+	nw, err := jt.Deserialize(bs)
 	if err != nil {
-		panic(fmt.Errorf("json unmarshal: %w", err))
+		panic(errors.Wrap(err, "must deserialize"))
 	}
-	return n
+	return nw
 }
 
 func (nw *Network) UnmarshalJSON(data []byte) error {

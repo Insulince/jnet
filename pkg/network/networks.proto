@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package main;
+
+option go_package = "networkspb";
+
+message Network {
+  string activationFunctionName = 1;
+  repeated Layer layers = 2;
+}
+
+message Layer {
+  repeated Neuron neurons = 1;
+}
+
+message Neuron {
+  string label = 1;
+  double bias = 2;
+  repeated Connection connections = 3;
+}
+
+message Connection {
+  double weight = 1;
+}

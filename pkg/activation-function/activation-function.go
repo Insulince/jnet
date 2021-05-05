@@ -6,6 +6,7 @@ package activationfunction
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"math"
 )
 
@@ -38,6 +39,14 @@ func GetFunction(name Name) (ActivationFunction, error) {
 		return nil, ErrNotFound(name)
 	}
 	return fn, nil
+}
+
+func MustGetFunction(name Name) ActivationFunction {
+	fn, err := GetFunction(name)
+	if err != nil {
+		panic(errors.Wrap(err, "must get function"))
+	}
+	return fn
 }
 
 func ErrNotFound(name Name) error {

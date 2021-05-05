@@ -75,6 +75,8 @@ The main limitations of this example is that we would need more training data an
  - [ ] Standardize and export common error cases for downstream consumption
  - [ ] Cancellation of training process mid-session
  - [ ] Debug Relu activation function
+ - [ ] Implement proper error wrapping
+ - [ ] Makefile for tests and proto gen
 
 ## Inspiration and Thanks
 
