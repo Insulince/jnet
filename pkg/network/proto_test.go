@@ -7,16 +7,17 @@ import (
 
 func Test_proto_SerializeAndDeserializeAreInverses(t *testing.T) {
 	spec := Spec{
-		NeuronMap:              []int{4, 4, 4, 4},
-		InputLabels:            []string{"a", "b", "c", "d"},
-		OutputLabels:           []string{"1", "2", "3", "4"},
+		NeuronMap:              []int{5, 8, 3},
+		InputLabels:            []string{"0", "1", "2", "3", "4"},
+		OutputLabels:           []string{"0", "1", "2"},
 		ActivationFunctionName: activationfunction.NameSigmoid,
 	}
 	nw := MustFrom(spec)
 
-	nw.MustForwardPass([]float64{1, 0, 0, 0})
-	nw.MustBackwardPass([]float64{1, 0, 0, 0})
-	nw.RecordNudges()
+	// NOTE: This is not included like it is for the JSON translator because proto translation does not encode things like weight and bias nudges.
+	//nw.MustForwardPass([]float64{1, 0, 0, 0, 0})
+	//nw.MustBackwardPass([]float64{1, 0, 0})
+	//nw.RecordNudges()
 
 	pt := NewProtoTranslator(WithCompression())
 	s := pt.MustSerialize(nw)
@@ -24,7 +25,6 @@ func Test_proto_SerializeAndDeserializeAreInverses(t *testing.T) {
 	s2 := pt.MustSerialize(nw2)
 
 	if err := nw.Equals(nw2); err != nil {
-		// TODO: Broken likely because proto encodings don't encode everything about the network like JSON encodings do, but the `Equals` method doesn't know that and checks everything anyway.
 		t.Fatalf("original network and deserialized network do not equal each other: %v", err)
 	}
 

@@ -18,6 +18,7 @@ import (
 	"github.com/Insulince/jnet/pkg/trainer"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -376,7 +377,7 @@ func main() {
 		Timeout:           1 * time.Minute,
 	}
 
-	t := trainer.New(trainConfig, trainingData)
+	t := trainer.New(trainConfig, trainingData, os.Stdout)
 
 	err = t.Train(nw)
 	if err != nil {

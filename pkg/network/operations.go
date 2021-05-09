@@ -382,12 +382,12 @@ func (nw Network) SetConnectionWeights(weights [][][]float64) error {
 
 	for li := range nw {
 		if len(weights[li]) != len(nw[li]) {
-			return fmt.Errorf("invalid number of sets of weights provided (%v) in set %v, does not match number of neurons in layer (%v)", len(weights[li]), li, len(nw))
+			return fmt.Errorf("invalid number of sets of weights provided (%v) in set %v, does not match number of neurons in layer (%v)", len(weights[li]), li, len(nw[li]))
 		}
 
 		for ni := range nw[li] {
 			if len(weights[li][ni]) != len(nw[li][ni].Connections) {
-				return fmt.Errorf("invalid number of weights provided (%v) in set %v subset %v, does not match number of connections in neurons (%v)", len(weights[li][ni]), li, ni, len(nw))
+				return fmt.Errorf("invalid number of weights provided (%v) in set %v subset %v, does not match number of connections in neurons (%v)", len(weights[li][ni]), li, ni, len(nw[li][ni].Connections))
 			}
 		}
 	}

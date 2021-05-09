@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Insulince/jnet/pkg/network"
+	"io"
 	"math"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -28,13 +30,18 @@ type Data []Datum
 type Trainer struct {
 	Configuration
 	Data
+	Log io.Writer
 }
 
-func New(c Configuration, d Data) Trainer {
-	// TODO(justin): Validate configuration?
+// TODO(justin): Validate configuration?
+func New(c Configuration, d Data, log io.Writer) Trainer {
+	if log == nil {
+		log = os.Stdout
+	}
 	return Trainer{
 		Configuration: c,
 		Data:          d,
+		Log:           log,
 	}
 }
 
@@ -73,7 +80,7 @@ func (t *Trainer) Train(nw network.Network) error {
 		}()
 	}
 
-	fmt.Println("Starting training process...")
+	_, _ = fmt.Fprintln(t.Log, "Starting training process...")
 
 	totalLoss, averageLoss, minMiniBatchLoss, maxMiniBatchLoss := 0.0, 0.0, float64(math.MaxInt32), float64(-math.MaxInt32)
 
@@ -111,7 +118,7 @@ func (t *Trainer) Train(nw network.Network) error {
 		}
 
 		miniBatchLoss := totalMiniBatchLoss / float64(t.Configuration.MiniBatchSize) // Get the average loss across the whole mini batch.
-		fmt.Printf("%3f ", miniBatchLoss)
+		_, _ = fmt.Fprintf(t.Log, "%3f ", miniBatchLoss)
 
 		totalLoss += miniBatchLoss
 		averageLoss = totalLoss / float64(ti) // TODO divide by zero????
@@ -123,7 +130,7 @@ func (t *Trainer) Train(nw network.Network) error {
 			minMiniBatchLoss = miniBatchLoss
 		}
 		if (ti+1)%15 == 0 {
-			fmt.Printf(" | %5f %5f %5f - %v\n", averageLoss, minMiniBatchLoss, maxMiniBatchLoss, ti)
+			_, _ = fmt.Fprintf(t.Log, " | %5f %5f %5f - %v\n", averageLoss, minMiniBatchLoss, maxMiniBatchLoss, ti)
 		}
 
 		nw.AdjustWeights(t.Configuration.LearningRate)
@@ -135,24 +142,24 @@ func (t *Trainer) Train(nw network.Network) error {
 		}
 
 		if averageLoss < t.Configuration.AverageLossCutoff {
-			fmt.Printf("\nReached average loss cutoff limit, ending training process...\n")
+			_, _ = fmt.Fprintf(t.Log, "\nReached average loss cutoff limit, ending training process...\n")
 			break
 		}
 
 		if minMiniBatchLoss < t.Configuration.MinLossCutoff {
-			fmt.Printf("\nReached minimum loss cutoff limit, ending training process...\n")
+			_, _ = fmt.Fprintf(t.Log, "\nReached minimum loss cutoff limit, ending training process...\n")
 			break
 		}
 
 		if ti > t.Configuration.MaxIterations {
-			fmt.Printf("\nReached maximum iterations, ending training process...\n")
+			_, _ = fmt.Fprintf(t.Log, "\nReached maximum iterations, ending training process...\n")
 			break
 		}
 
 		ti++
 	}
 
-	fmt.Println("Training process ended.")
+	_, _ = fmt.Fprintln(t.Log, "Training process ended.")
 
 	return nil
 }

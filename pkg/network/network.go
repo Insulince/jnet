@@ -17,7 +17,7 @@ type Network []Layer
 // - OutputLabels defines the labels for each of the output neurons. len(OutputLabels) must equal
 //     NeuronMap[len(NeuronMap)-1]
 // - ActivationFunctionName is a name corresponding to an ActivationFunction found in the activationfunction package.
-//     All neurons created for this network will use this acitvation function
+//     All neurons created for this network will use this activation function
 type Spec struct {
 	NeuronMap              []int
 	InputLabels            []string

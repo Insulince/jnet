@@ -65,10 +65,7 @@ func Test_NetworkConverges(t *testing.T) {
 			AverageLossCutoff: 0.1,
 		}
 
-		tr := trainer.Trainer{
-			Configuration: tc,
-			Data:          td,
-		}
+		tr := trainer.New(tc, td, nil)
 
 		err := tr.Train(nw)
 

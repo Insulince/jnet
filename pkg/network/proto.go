@@ -123,6 +123,7 @@ func fromProto(pnw *networkspb.Network) (Network, error) {
 
 			n.label = pn.Label
 			n.bias = pn.Bias
+			n.ActivationFunctionName = activationfunction.Name(pnw.ActivationFunctionName)
 			n.activationFunction = activationfunction.MustGetFunction(activationfunction.Name(pnw.ActivationFunctionName))
 
 			for _, pc := range pn.Connections {
