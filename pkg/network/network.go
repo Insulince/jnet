@@ -36,18 +36,20 @@ func From(spec Spec) (Network, error) {
 	if spec.NeuronMap == nil {
 		return nil, errors.New("must provide a neuron map")
 	}
+	if len(spec.NeuronMap) < 2 {
+		return nil, errors.New("must provide a neuron map with at least 2 layers (for input and output layer)")
+	}
 	for li := range spec.NeuronMap {
 		qn := spec.NeuronMap[li]
 
-		if li == 0 {
-			l, err := NewLayer(qn, nil, spec.ActivationFunctionName)
-			if err != nil {
-				return nil, err
-			}
-			nw = append(nw, l)
-			continue
+		if qn < 1 {
+			return nil, errors.New("layer in neuron map must contain at least one neuron")
 		}
-		pl := nw[li-1]
+
+		var pl Layer
+		if li > 0 {
+			pl = nw[li-1]
+		}
 		l, err := NewLayer(qn, pl, spec.ActivationFunctionName)
 		if err != nil {
 			return nil, err
@@ -125,12 +127,40 @@ func (nw Network) ReconnectNeurons() error {
 	return nil
 }
 
+// IsFullyConnected reports whether all neurons in the network are connected to another neuron by checking that the
+// neuron has the same number of connections as there are neurons in the previous layer and that each of those connections
+// has its To field populated with a non-nil neuron.
+func (nw Network) IsFullyConnected() bool {
+	for li := 1; li < len(nw); li++ {
+		l := nw[li]
+		pl := nw[li-1]
+
+		for ni := 0; ni < len(l); ni++ {
+			n := l[ni]
+
+			if len(n.Connections) != len(pl) {
+				return false
+			}
+
+			for ci := 0; ci < len(n.Connections); ci++ {
+				c := n.Connections[ci]
+
+				if c.To == nil {
+					return false
+				}
+			}
+		}
+	}
+
+	return true
+}
+
 func (nw Network) Predict(input []float64) (string, float64, error) {
 	if len(input) != len(nw.FirstLayer()) {
 		return "", 0, fmt.Errorf("invalid number of values provided (%v), does no match number of neurons in Layer (%v)", len(input), len(nw.FirstLayer()))
 	}
 
-	nw.ResetForPass(true)
+	nw.ResetFromBatch()
 
 	err := nw.ForwardPass(input)
 	if err != nil {
@@ -259,9 +289,15 @@ func (nw Network) MustCalculateLoss(truth []float64) float64 {
 	return loss
 }
 
-func (nw Network) ResetForPass(andBatch bool) {
+func (nw Network) ResetFromBatch() {
 	for li := range nw {
-		nw[li].resetForPass(andBatch)
+		nw[li].resetFromBatch()
+	}
+}
+
+func (nw Network) ResetFromPass() {
+	for li := range nw {
+		nw[li].resetFromPass()
 	}
 }
 

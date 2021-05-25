@@ -23,14 +23,18 @@ func NewConnection(pn *Neuron) *Connection {
 	}
 }
 
-func (c *Connection) resetForPass(andBatch bool) {
+func (c *Connection) resetFromBatch() {
 	c.dNetDWeight = 0.0
 	c.dLossDWeight = 0.0
 	c.dNetDPrevValue = 0.0
 
-	if andBatch {
-		c.weightNudges = c.weightNudges[:0]
-	}
+	c.weightNudges = nil
+}
+
+func (c *Connection) resetFromPass() {
+	c.dNetDWeight = 0.0
+	c.dLossDWeight = 0.0
+	c.dNetDPrevValue = 0.0
 }
 
 func (c *Connection) recordNudge() {

@@ -81,7 +81,7 @@ func (n *Neuron) ConnectNeurons(pl Layer) error {
 	return nil
 }
 
-func (n *Neuron) resetForPass(andBatch bool) {
+func (n *Neuron) resetFromBatch() {
 	n.value = 0.0
 	n.wSum = 0.0
 
@@ -90,12 +90,24 @@ func (n *Neuron) resetForPass(andBatch bool) {
 	n.dValueDNet = 0.0
 	n.dNetDBias = 0.0
 
-	if andBatch {
-		n.biasNudges = n.biasNudges[:0]
-	}
+	n.biasNudges = nil
 
 	for ci := range n.Connections {
-		n.Connections[ci].resetForPass(andBatch)
+		n.Connections[ci].resetFromBatch()
+	}
+}
+
+func (n *Neuron) resetFromPass() {
+	n.value = 0.0
+	n.wSum = 0.0
+
+	n.dLossDValue = 0.0
+	n.dLossDBias = 0.0
+	n.dValueDNet = 0.0
+	n.dNetDBias = 0.0
+
+	for ci := range n.Connections {
+		n.Connections[ci].resetFromPass()
 	}
 }
 

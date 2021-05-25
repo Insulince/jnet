@@ -63,9 +63,15 @@ func (l Layer) ConnectNeurons(pl Layer) error {
 	return nil
 }
 
-func (l Layer) resetForPass(andBatch bool) {
+func (l Layer) resetFromBatch() {
 	for ni := range l {
-		l[ni].resetForPass(andBatch)
+		l[ni].resetFromBatch()
+	}
+}
+
+func (l Layer) resetFromPass() {
+	for ni := range l {
+		l[ni].resetFromPass()
 	}
 }
 

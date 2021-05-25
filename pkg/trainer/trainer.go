@@ -93,9 +93,9 @@ func (t *Trainer) Train(nw network.Network) error {
 
 		totalMiniBatchLoss := 0.0
 
-		nw.ResetForPass(true)
+		nw.ResetFromBatch()
 		for _, td := range miniBatch {
-			nw.ResetForPass(false)
+			nw.ResetFromPass()
 
 			err := nw.ForwardPass(td.Data)
 			if err != nil {
