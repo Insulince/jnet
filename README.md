@@ -257,6 +257,7 @@ The main limitations of this example is that we would need more training data, a
 - [ ] Implement proper error wrapping
 - [ ] Makefile for tests and proto gen
 - [ ] Sentinel Errors
+- [ ] Getters and possibly setters where needed
 
 ## Inspiration and Thanks
 

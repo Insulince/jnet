@@ -78,24 +78,28 @@ func (l Layer) ConnectNeurons(pl Layer) error {
 	return nil
 }
 
+// resetFromBatch resets every neuron in l from the previous mini batch.
 func (l Layer) resetFromBatch() {
 	for ni := range l {
 		l[ni].resetFromBatch()
 	}
 }
 
+// resetFromPass resets every neuron in l from the previous pass.
 func (l Layer) resetFromPass() {
 	for ni := range l {
 		l[ni].resetFromPass()
 	}
 }
 
+// recordNudges has every neuron in l record its bias and connection nudges.
 func (l Layer) recordNudges() {
 	for ni := range l {
-		l[ni].recordNudge()
+		l[ni].recordNudges()
 	}
 }
 
+// adjustWeights has every neuron in l adjust its connection's weights.
 func (l Layer) adjustWeights(learningRate float64) {
 	for ni := range l {
 		l[ni].adjustWeights(learningRate)
