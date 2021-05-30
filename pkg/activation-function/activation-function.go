@@ -1,13 +1,17 @@
-// Package activationfunction is for isolating the concept of an activation function into its own area. Activation
-// functions are used in neural networks to provide stability to their inputs and outputs through non-linearization.
-// What that means is that a neuron which is loaded up with tons of values in its weighted sum will be sent through
-// an activation function which sets a bound on it to prevent this large value from influencing the rest of the network.
+// Package activationfunction is for isolating the concept of an activation
+// function into its own area. Activation functions are used in neural networks
+// to provide stability to their inputs and outputs through non-linearization.
+// What that means is that a neuron which is loaded up with tons of values in
+// its weighted sum will be sent through an activation function which sets a
+// bound on it to prevent this large value from influencing the rest of the
+// network.
 package activationfunction
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"math"
+
+	"github.com/pkg/errors"
 )
 
 type (
@@ -41,6 +45,7 @@ func GetFunction(name Name) (ActivationFunction, error) {
 	return fn, nil
 }
 
+// MustGetFunction calls GetFunction but panics if an error is encountered.
 func MustGetFunction(name Name) ActivationFunction {
 	fn, err := GetFunction(name)
 	if err != nil {
@@ -81,7 +86,8 @@ func linear(x float64) float64 {
 	return x
 }
 
-// NOTE(justin): The following ensures that all functions adhere to the ActivationFunction type
+// NOTE(justin): The following ensures that all functions adhere to the
+// ActivationFunction type
 var (
 	_ ActivationFunction = noop
 	_ ActivationFunction = sigmoid

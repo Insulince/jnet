@@ -1,8 +1,9 @@
 package network
 
 import (
-	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 	"testing"
+
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 )
 
 func Test_proto_SerializeAndDeserializeAreInverses(t *testing.T) {
@@ -14,10 +15,11 @@ func Test_proto_SerializeAndDeserializeAreInverses(t *testing.T) {
 	}
 	nw := MustFrom(spec)
 
-	// NOTE: This is not included like it is for the JSON translator because proto translation does not encode things like weight and bias nudges.
-	//nw.MustForwardPass([]float64{1, 0, 0, 0, 0})
-	//nw.MustBackwardPass([]float64{1, 0, 0})
-	//nw.RecordNudges()
+	// NOTE: This is not included like it is for the JSON translator because
+	// proto translation does not encode things like weight and bias nudges.
+	// nw.MustForwardPass([]float64{1, 0, 0, 0, 0})
+	// nw.MustBackwardPass([]float64{1, 0, 0})
+	// nw.RecordNudges()
 
 	pt := NewProtoTranslator(WithCompression())
 	s := pt.MustSerialize(nw)

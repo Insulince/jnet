@@ -5,13 +5,20 @@ import (
 )
 
 type Connection struct {
-	To *Neuron // The neuron that this Connection's owning neuron is considered to be connected "to". This neuron should be in the layer previous to the Connection's owning neuron.
+	// The neuron that this Connection's owning neuron is considered to be
+	// connected "to". This neuron should be in the layer previous to the
+	// Connection's owning neuron.
+	To *Neuron
 
 	weight float64
 
-	dNetDWeight    float64 // The effect this Connection's weight has on the weighted sum + bias.
-	dLossDWeight   float64 // The effect this Connection's weight has on the loss.
-	dNetDPrevValue float64 // The effect this Connection's connected neuron's activation has on the weighted sum + bias.
+	// The effect this Connection's weight has on the weighted sum + bias.
+	dNetDWeight float64
+	// The effect this Connection's weight has on the loss.
+	dLossDWeight float64
+	// The effect this Connection's connected neuron's activation has on the
+	// weighted sum + bias.
+	dNetDPrevValue float64
 
 	weightNudges []float64
 }

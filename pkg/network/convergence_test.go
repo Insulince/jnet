@@ -2,12 +2,13 @@ package network_test
 
 import (
 	"errors"
-	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/network"
-	"github.com/Insulince/jnet/pkg/trainer"
 	"math/rand"
 	"testing"
 	"time"
+
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+	"github.com/Insulince/jnet/pkg/network"
+	"github.com/Insulince/jnet/pkg/trainer"
 )
 
 var timeout = errors.New("timeout")
@@ -16,18 +17,24 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// Test_NetworkConverges is a sanity-check test intended to be heavily utilized during development to ensure the
-// algorithm has not broken during any changes. The idea is, this test case encapsulates a network known to converge to
-// a low loss level very quickly, so if this test takes longer than some pre-defined cutoff, this test will fail and
-// thus we know the algorithm is broken.
-// The choice to seed the randomness generator differently everytime is tricky, for it introduces some uncertainty to
-// how sure we can be that this test isn't going to generate a false negative. On the one hand, introducing randomness
-// makes it such that we aren't exclusively testing the mechanisms of the algorithm, we are also testing that the random
-// weights are favorable to quickly converging network, hence the uncertainty. However, on the other hand the vast
-// majority of randomized weights should behave imperceptibly similar to other randomized weights, so in this regard it
-// expands the veracity of the test. And since it is exceedingly rare to randomly encounter a set of weights which cause
-// a false negative, then to truly be sure in the event of a failing test that it isn't a false negative, simply run it
-// again, or even multiple times.
+// Test_NetworkConverges is a sanity-check test intended to be heavily utilized
+// during development to ensure the algorithm has not broken during any changes.
+// The idea is, this test case encapsulates a network known to converge to a low
+// loss level very quickly, so if this test takes longer than some pre-defined
+// cutoff, this test will fail and thus we know the algorithm is broken.
+//
+// The choice to seed the randomness generator differently everytime is tricky,
+// for it introduces some uncertainty to how sure we can be that this test isn't
+// going to generate a false negative. On the one hand, introducing randomness
+// makes it such that we aren't exclusively testing the mechanisms of the
+// algorithm, we are also testing that the random weights are favorable to
+// quickly converging network, hence the uncertainty. However, on the other
+// hand the vast majority of randomized weights should behave imperceptibly
+// similar to other randomized weights, so in this regard it expands the
+// veracity of the test. And since it is exceedingly rare to randomly encounter
+// a set of weights which cause a false negative, then to truly be sure in the
+// event of a failing test that it isn't a false negative, simply run it again,
+// or even multiple times.
 func Test_NetworkConverges(t *testing.T) {
 	exit := make(chan error)
 
@@ -73,7 +80,8 @@ func Test_NetworkConverges(t *testing.T) {
 	}()
 
 	go func() {
-		time.Sleep(1 * time.Second) // This network should converge in well under a second.
+		// This network should converge in well under a second.
+		time.Sleep(1 * time.Second)
 		exit <- timeout
 	}()
 

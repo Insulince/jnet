@@ -1,18 +1,24 @@
-// Program rohrer is a manually constructed neural network which represents the example created by Brandon Rohrer in his
-// excellent introduction to Deep Neural Networks found here: https://youtu.be/ILsA4nyG7I0?t=1371
-// Of course, this is an extremely contrived neural network used only for educational purposes, but the theory behind it
-// should hold true for jnet as well, which it does.
-// Each of the possible outcomes have input scenarios defined at the end of the main function. Simply uncomment one
-// and comment out the previous one to test the different scenarios.
+// Program rohrer is a manually constructed neural network which represents the
+// example created by Brandon Rohrer in his excellent introduction to Deep
+// Neural Networks found here: https://youtu.be/ILsA4nyG7I0?t=1371
+//
+// Of course, this is an extremely contrived neural network used only for
+// educational purposes, but the theory behind it should hold true for jnet as
+// well, which it does.
+//
+// Each of the possible outcomes have input scenarios defined at the end of the
+// main function. Simply uncomment one and comment out the previous one to test
+// the different scenarios.
 package main
 
 import (
 	"fmt"
-	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/network"
 	"log"
 	"math/rand"
 	"time"
+
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+	"github.com/Insulince/jnet/pkg/network"
 )
 
 func init() {
@@ -61,7 +67,8 @@ func main() {
 	nw[4][3].MustSetConnectionWeights([]float64{0, 0, 0, 0, 0, 0, 1, 1})
 
 	input := []float64{
-		// NOTE(justin): Uncomment ONE of these lines to test the different scenarios
+		// NOTE(justin): Uncomment ONE of these lines to test the different
+		// scenarios
 		1, 1, 1, 1, // Solid
 		//-1, -1, -1, -1, // Solid (alt)
 		//1, 1, -1, -1, // Horizontal

@@ -2,10 +2,9 @@ package network
 
 import (
 	"fmt"
+
 	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 )
-
-//////////////////////////////////////// Network ////////////////////////////////////////
 
 func (nw Network) Equals(nw2 Network) error {
 	if len(nw) != len(nw2) {
@@ -43,6 +42,7 @@ func (nw Network) GetLayer(i int) (Layer, error) {
 	return nw[i], nil
 }
 
+// MustGetLayer calls GetLayer but panics if an error is encountered.
 func (nw Network) MustGetLayer(i int) Layer {
 	l, err := nw.GetLayer(i)
 	if err != nil {
@@ -51,7 +51,8 @@ func (nw Network) MustGetLayer(i int) Layer {
 	return l
 }
 
-// GetLayers returns the subset of layers from i to j, i inclusive and j exclusive.
+// GetLayers returns the subset of layers from i to j, i inclusive and j
+// exclusive.
 func (nw Network) GetLayers(i, j int) ([]Layer, error) {
 	if i == j {
 		return nil, nil
@@ -68,6 +69,7 @@ func (nw Network) GetLayers(i, j int) ([]Layer, error) {
 	return nw[i:j], nil
 }
 
+// MustGetLayers calls GetLayers but panics if an error is encountered.
 func (nw Network) MustGetLayers(i, j int) []Layer {
 	ls, err := nw.GetLayers(i, j)
 	if err != nil {
@@ -90,6 +92,7 @@ func (nw Network) SetLayer(i int, l Layer) error {
 	return nil
 }
 
+// MustSetLayer calls SetLayer but panics if an error is encountered.
 func (nw Network) MustSetLayer(i int, l Layer) {
 	err := nw.SetLayer(i, l)
 	if err != nil {
@@ -97,7 +100,8 @@ func (nw Network) MustSetLayer(i int, l Layer) {
 	}
 }
 
-// SetLayers sets the subset of layers from i to j, i inclusive and j exclusive, to ls.
+// SetLayers sets the subset of layers from i to j, i inclusive and j exclusive,
+// to ls.
 func (nw Network) SetLayers(i, j int, ls []Layer) error {
 	if i == j {
 		return nil
@@ -124,6 +128,7 @@ func (nw Network) SetLayers(i, j int, ls []Layer) error {
 	return nil
 }
 
+// MustSetLayers calls SetLayers but panics if an error is encountered.
 func (nw Network) MustSetLayers(i, j int, ls []Layer) {
 	err := nw.SetLayers(i, j, ls)
 	if err != nil {
@@ -143,6 +148,7 @@ func (nw Network) SwapOutLayer(i int, l Layer) (Layer, error) {
 	return ol, nil
 }
 
+// MustSwapOutLayer calls SwapOutLayer but panics if an error is encountered.
 func (nw Network) MustSwapOutLayer(i int, l Layer) Layer {
 	ol, err := nw.SwapOutLayer(i, l)
 	if err != nil {
@@ -173,6 +179,7 @@ func (nw Network) SwapOutLayers(i, j int, ls []Layer) ([]Layer, error) {
 	return ols, nil
 }
 
+// MustSwapOutLayers calls SwapOutLayers but panics if an error is encountered.
 func (nw Network) MustSwapOutLayers(i, j int, ls []Layer) []Layer {
 	ols, err := nw.SwapOutLayers(i, j, ls)
 	if err != nil {
@@ -202,6 +209,8 @@ func (nw Network) SetNeuronValues(values [][]float64) error {
 	return nil
 }
 
+// MustSetNeuronValues calls SetNeuronValues but panics if an error is
+// encountered.
 func (nw Network) MustSetNeuronValues(values [][]float64) {
 	err := nw.SetNeuronValues(values)
 	if err != nil {
@@ -236,6 +245,8 @@ func (nw Network) SetNeuronLabels(labels [][]string) error {
 	return nil
 }
 
+// MustSetNeuronLabels calls SetNeuronLabels but panics if an error is
+// encountered.
 func (nw Network) MustSetNeuronLabels(labels [][]string) {
 	err := nw.SetNeuronLabels(labels)
 	if err != nil {
@@ -261,6 +272,8 @@ func (nw Network) SetInputNeuronLabels(labels []string) error {
 	return nil
 }
 
+// MustSetInputNeuronLabels calls SetInputNeuronLabels but panics if an error is
+// encountered.
 func (nw Network) MustSetInputNeuronLabels(labels []string) {
 	err := nw.SetInputNeuronLabels(labels)
 	if err != nil {
@@ -284,6 +297,8 @@ func (nw Network) SetOutputNeuronLabels(labels []string) error {
 	return nil
 }
 
+// MustSetOutputNeuronLabels calls SetOutputNeuronLabels but panics if an error
+// is encountered.
 func (nw Network) MustSetOutputNeuronLabels(labels []string) {
 	err := nw.SetOutputNeuronLabels(labels)
 	if err != nil {
@@ -317,6 +332,8 @@ func (nw Network) SetNeuronBiases(biases [][]float64) error {
 	return nil
 }
 
+// MustSetNeuronBiases calls SetNeuronBiases but panics if an error is
+// encountered.
 func (nw Network) MustSetNeuronBiases(biases [][]float64) {
 	err := nw.SetNeuronBiases(biases)
 	if err != nil {
@@ -351,6 +368,8 @@ func (nw Network) SetNeuronActivationFunctions(activationFunctionNames [][]activ
 	return nil
 }
 
+// MustSetNeuronActivationFunctions calls SetNeuronActivationFunctions but
+// panics if an error is encountered.
 func (nw Network) MustSetNeuronActivationFunctions(activationFunctionNames [][]activationfunction.Name) {
 	err := nw.SetNeuronActivationFunctions(activationFunctionNames)
 	if err != nil {
@@ -368,6 +387,8 @@ func (nw Network) SetNeuronActivationFunctionsTo(activationFunctionName activati
 	return nil
 }
 
+// MustSetNeuronActivationFunctionsTo calls SetNeuronActivationFunctionsTo but
+// panics if an error is encountered.
 func (nw Network) MustSetNeuronActivationFunctionsTo(activationFunctionName activationfunction.Name) {
 	err := nw.SetNeuronActivationFunctionsTo(activationFunctionName)
 	if err != nil {
@@ -402,6 +423,8 @@ func (nw Network) SetConnectionWeights(weights [][][]float64) error {
 	return nil
 }
 
+// MustSetConnectionWeights calls SetConnectionWeights but panics if an error is
+// encountered.
 func (nw Network) MustSetConnectionWeights(weights [][][]float64) {
 	err := nw.SetConnectionWeights(weights)
 	if err != nil {
@@ -414,8 +437,6 @@ func (nw Network) SetConnectionWeightsTo(weight float64) {
 		nw[li].SetConnectionWeightsTo(weight)
 	}
 }
-
-//////////////////////////////////////// Layer ////////////////////////////////////////
 
 func (l Layer) Equals(l2 Layer) error {
 	if len(l) != len(l2) {
@@ -453,6 +474,7 @@ func (l Layer) GetNeuron(i int) (*Neuron, error) {
 	return l[i], nil
 }
 
+// MustGetNeuron calls GetNeuron but panics if an error is encountered.
 func (l Layer) MustGetNeuron(i int) *Neuron {
 	n, err := l.GetNeuron(i)
 	if err != nil {
@@ -477,6 +499,7 @@ func (l Layer) GetNeurons(i, j int) ([]*Neuron, error) {
 	return l[i:j], nil
 }
 
+// MustGetNeurons calls GetNeurons but panics if an error is encountered.
 func (l Layer) MustGetNeurons(i, j int) []*Neuron {
 	ons, err := l.GetNeurons(i, j)
 	if err != nil {
@@ -499,6 +522,7 @@ func (l Layer) SetNeuron(i int, n *Neuron, pl Layer) error {
 	return nil
 }
 
+// MustSetNeuron calls SetNeuron but panics if an error is encountered.
 func (l Layer) MustSetNeuron(i int, n *Neuron, pl Layer) {
 	err := l.SetNeuron(i, n, pl)
 	if err != nil {
@@ -532,6 +556,7 @@ func (l Layer) SetNeurons(i, j int, ns []*Neuron, pl Layer) error {
 	return nil
 }
 
+// MustSetNeurons calls SetNeurons but panics if an error is encountered.
 func (l Layer) MustSetNeurons(i, j int, ns []*Neuron, pl Layer) {
 	err := l.SetNeurons(i, j, ns, pl)
 	if err != nil {
@@ -551,6 +576,7 @@ func (l Layer) SwapOutNeuron(i int, n *Neuron, pl Layer) (*Neuron, error) {
 	return on, nil
 }
 
+// MustSwapOutNeuron calls SwapOutNeuron but panics if an error is encountered.
 func (l Layer) MustSwapOutNeuron(i int, n *Neuron, pl Layer) *Neuron {
 	on, err := l.SwapOutNeuron(i, n, pl)
 	if err != nil {
@@ -581,6 +607,8 @@ func (l Layer) SwapOutNeurons(i, j int, ns []*Neuron, pl Layer) ([]*Neuron, erro
 	return ols, nil
 }
 
+// MustSwapOutNeurons calls SwapOutNeurons but panics if an error is
+// encountered.
 func (l Layer) MustSwapOutNeurons(i, j int, ns []*Neuron, pl Layer) []*Neuron {
 	ons, err := l.SwapOutNeurons(i, j, ns, pl)
 	if err != nil {
@@ -600,6 +628,8 @@ func (l Layer) SetNeuronValues(values []float64) error {
 	return nil
 }
 
+// MustSetNeuronValues calls SetNeuronValues but panics if an error is
+// encountered.
 func (l Layer) MustSetNeuronValues(values []float64) {
 	err := l.SetNeuronValues(values)
 	if err != nil {
@@ -625,6 +655,8 @@ func (l Layer) SetNeuronLabels(labels []string) error {
 	return nil
 }
 
+// MustSetNeuronLabels calls SetNeuronLabels but panics if an error is
+// encountered.
 func (l Layer) MustSetNeuronLabels(labels []string) {
 	err := l.SetNeuronLabels(labels)
 	if err != nil {
@@ -649,6 +681,8 @@ func (l Layer) SetNeuronBiases(biases []float64) error {
 	return nil
 }
 
+// MustSetNeuronBiases calls SetNeuronBiases but panics if an error is
+// encountered.
 func (l Layer) MustSetNeuronBiases(biases []float64) {
 	err := l.SetNeuronBiases(biases)
 	if err != nil {
@@ -676,6 +710,8 @@ func (l Layer) SetActivationFunctions(activationFunctionNames []activationfuncti
 	return nil
 }
 
+// MustSetActivationFunctions calls SetActivationFunctions but panics if an
+// error is encountered.
 func (l Layer) MustSetActivationFunctions(activationFunctionNames []activationfunction.Name) {
 	err := l.SetActivationFunctions(activationFunctionNames)
 	if err != nil {
@@ -693,6 +729,8 @@ func (l Layer) SetNeuronActivationFunctionsTo(activationFunctionName activationf
 	return nil
 }
 
+// MustSetNeuronActivationFunctionsTo calls SetNeuronActivationFunctionsTo but
+// panics if an error is encountered.
 func (l Layer) MustSetNeuronActivationFunctionsTo(activationFunctionName activationfunction.Name) {
 	err := l.SetNeuronActivationFunctionsTo(activationFunctionName)
 	if err != nil {
@@ -721,6 +759,8 @@ func (l Layer) SetConnectionWeights(weights [][]float64) error {
 	return nil
 }
 
+// MustSetConnectionWeights calls SetConnectionWeights but panics if an error is
+// encountered.
 func (l Layer) MustSetConnectionWeights(weights [][]float64) {
 	err := l.SetConnectionWeights(weights)
 	if err != nil {
@@ -734,10 +774,9 @@ func (l Layer) SetConnectionWeightsTo(weight float64) {
 	}
 }
 
-//////////////////////////////////////// Neuron ////////////////////////////////////////
-
 func (n *Neuron) Equals(n2 *Neuron) error {
-	// NOTE(justin): To avoid misleading behavior, nil values are not considered equal.
+	// NOTE(justin): To avoid misleading behavior, nil values are not considered
+	// equal.
 	if n == nil || n2 == nil {
 		return fmt.Errorf("one or both of the neurons are nil, %v || %v", n == nil, n2 == nil)
 	}
@@ -810,6 +849,7 @@ func (n *Neuron) GetConnection(i int) (*Connection, error) {
 	return n.Connections[i], nil
 }
 
+// MustGetConnection calls GetConnection but panics if an error is encountered.
 func (n *Neuron) MustGetConnection(i int) *Connection {
 	c, err := n.GetConnection(i)
 	if err != nil {
@@ -834,6 +874,8 @@ func (n *Neuron) GetConnections(i, j int) ([]*Connection, error) {
 	return n.Connections[i:j], nil
 }
 
+// MustGetConnections calls GetConnections but panics if an error is
+// encountered.
 func (n *Neuron) MustGetConnections(i, j int) []*Connection {
 	ons, err := n.GetConnections(i, j)
 	if err != nil {
@@ -853,6 +895,7 @@ func (n *Neuron) SetConnection(i int, c *Connection) error {
 	return nil
 }
 
+// MustSetConnection calls SetConnection but panics if an error is encountered.
 func (n *Neuron) MustSetConnection(i int, c *Connection) {
 	err := n.SetConnection(i, c)
 	if err != nil {
@@ -883,6 +926,8 @@ func (n *Neuron) SetConnections(i, j int, cs []*Connection) error {
 	return nil
 }
 
+// MustSetConnections calls SetConnections but panics if an error is
+// encountered.
 func (n *Neuron) MustSetConnections(i, j int, cs []*Connection) {
 	err := n.SetConnections(i, j, cs)
 	if err != nil {
@@ -902,6 +947,8 @@ func (n *Neuron) SwapOutConnection(i int, c *Connection) (*Connection, error) {
 	return on, nil
 }
 
+// MustSwapOutConnection calls SwapOutConnection but panics if an error is
+// encountered.
 func (n *Neuron) MustSwapOutConnection(i int, c *Connection) *Connection {
 	oc, err := n.SwapOutConnection(i, c)
 	if err != nil {
@@ -932,6 +979,8 @@ func (n *Neuron) SwapOutConnections(i, j int, cs []*Connection) ([]*Connection, 
 	return ols, nil
 }
 
+// MustSwapOutConnections calls SwapOutConnections but panics if an error is
+// encountered.
 func (n *Neuron) MustSwapOutConnections(i, j int, cs []*Connection) []*Connection {
 	ons, err := n.SwapOutConnections(i, j, cs)
 	if err != nil {
@@ -963,6 +1012,8 @@ func (n *Neuron) SetActivationFunction(activationFunctionName activationfunction
 	return nil
 }
 
+// MustSetActivationFunction calls SetActivationFunction but panics if an error
+// is encountered.
 func (n *Neuron) MustSetActivationFunction(activationFunctionName activationfunction.Name) {
 	err := n.SetActivationFunction(activationFunctionName)
 	if err != nil {
@@ -981,6 +1032,8 @@ func (n *Neuron) SetConnectionWeights(weights []float64) error {
 	return nil
 }
 
+// MustSetConnectionWeights calls SetConnectionWeights but panics if an error is
+// encountered.
 func (n *Neuron) MustSetConnectionWeights(weights []float64) {
 	err := n.SetConnectionWeights(weights)
 	if err != nil {
@@ -994,17 +1047,18 @@ func (n *Neuron) SetConnectionWeightsTo(weight float64) {
 	}
 }
 
-//////////////////////////////////////// Connection ////////////////////////////////////////
-
 func (c *Connection) Equals(c2 *Connection) error {
-	// NOTE(justin): To avoid misleading behavior, nil values are not considered equal.
+	// NOTE(justin): To avoid misleading behavior, nil values are not considered
+	// equal.
 	if c == nil || c2 == nil {
 		return fmt.Errorf("one or both of the connections are nil, %v || %v", c == nil, c2 == nil)
 	}
 
-	// NOTE(justin): This introduces a lot of calculations, exponentially so as the network grows in layers.
-	// This line means that Neuron.Equals calls Connection.Equals which then calls Neuron.Equals again on its connecting
-	// neuron. And while this will eventually terminate, it means there will be a lot of checks.
+	// NOTE(justin): This introduces a lot of calculations, exponentially so as
+	// the network grows in layers. This line means that Neuron.Equals calls
+	// Connection.Equals which then calls Neuron.Equals again on its connecting
+	// neuron. And while this will eventually terminate, it means there will be
+	// a lot of checks.
 	if err := c.To.Equals(c2.To); err != nil {
 		return err
 	}

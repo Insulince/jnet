@@ -3,12 +3,13 @@ package trainer
 import (
 	"errors"
 	"fmt"
-	"github.com/Insulince/jnet/pkg/network"
 	"io"
 	"math"
 	"math/rand"
 	"os"
 	"time"
+
+	"github.com/Insulince/jnet/pkg/network"
 )
 
 type Configuration struct {
@@ -46,7 +47,8 @@ func New(c Configuration, d Data, log io.Writer) Trainer {
 }
 
 func (d Data) shuffle() {
-	for i := 0; i < len(d); i++ { // For every training datum in this training data...
+	// For every training datum in this training data...
+	for i := 0; i < len(d); i++ {
 		r := rand.Intn(i + 1) // Select a random training datum index in [0, i]
 
 		d[i], d[r] = d[r], d[i]
@@ -117,7 +119,8 @@ func (t *Trainer) Train(nw network.Network) error {
 			nw.RecordNudges()
 		}
 
-		miniBatchLoss := totalMiniBatchLoss / float64(t.Configuration.MiniBatchSize) // Get the average loss across the whole mini batch.
+		// Get the average loss across the whole mini batch.
+		miniBatchLoss := totalMiniBatchLoss / float64(t.Configuration.MiniBatchSize)
 		_, _ = fmt.Fprintf(t.Log, "%3f ", miniBatchLoss)
 
 		totalLoss += miniBatchLoss

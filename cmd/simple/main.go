@@ -1,25 +1,33 @@
-// Program simple show cases a simple and contrived example of training a neural network to recognize data. I don't
-// think its fair to say that this program shows learning or pattern recognition, because the network generated is
-// extremely overly fitted to the data, since the data covers every possible input, but that is the nature of working
-// with such a contrived example as this.
-// Now for the example details. This network takes in a 5x5 grid of input variables which contain 7 segment display
-// style numbers encoded in them. The output of this network is intended to classify each input as a single digit
+// Program simple show cases a simple and contrived example of training a neural
+// network to recognize data. I don't think its fair to say that this program
+// shows learning or pattern recognition, because the network generated is
+// extremely overly fitted to the data, since the data covers every possible
+// input, but that is the nature of working with such a contrived example as
+// this.
+//
+// Now for the example details. This network takes in a 5x5 grid of input
+// variables which contain 7 segment display style numbers encoded in them. The
+// output of this network is intended to classify each input as a single digit
 // number.
-// There are only 32 possible ways to represent these seven segment display encodings, and all 32 are used here, which
-// is why this example is over fitted. This concept does scale up, however. If we were to make this a 200x200 grid of
-// inputs, and loaded in examples of handwritten numbers, learning and pattern recognition could certainly arise from
-// the proper training set.
+//
+// There are only 32 possible ways to represent these seven segment display
+// encodings, and all 32 are used here, which is why this example is over
+// fitted. This concept does scale up, however. If we were to make this a
+// 200x200 grid of inputs, and loaded in examples of handwritten numbers,
+// learning and pattern recognition could certainly arise from the proper
+// training set.
 package main
 
 import (
 	"fmt"
-	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/network"
-	"github.com/Insulince/jnet/pkg/trainer"
 	"log"
 	"math/rand"
 	"os"
 	"time"
+
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+	"github.com/Insulince/jnet/pkg/network"
+	"github.com/Insulince/jnet/pkg/trainer"
 )
 
 func init() {

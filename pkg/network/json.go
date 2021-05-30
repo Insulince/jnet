@@ -2,8 +2,10 @@ package network
 
 import (
 	"encoding/json"
-	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+
 	"github.com/pkg/errors"
+
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
 )
 
 type jsonTranslator struct {
@@ -34,6 +36,7 @@ func (jt jsonTranslator) Serialize(nw Network) ([]byte, error) {
 	return bs, nil
 }
 
+// MustSerialize calls Serialize but panics if an error is encountered.
 func (jt jsonTranslator) MustSerialize(nw Network) []byte {
 	bs, err := jt.Serialize(nw)
 	if err != nil {
@@ -58,6 +61,7 @@ func (jt jsonTranslator) Deserialize(bs []byte) (Network, error) {
 	return nw, nil
 }
 
+// MustDeserialize calls Deserialize but panics if an error is encountered.
 func (jt jsonTranslator) MustDeserialize(bs []byte) Network {
 	nw, err := jt.Deserialize(bs)
 	if err != nil {
@@ -69,52 +73,71 @@ func (jt jsonTranslator) MustDeserialize(bs []byte) Network {
 func (nw *Network) UnmarshalJSON(data []byte) error {
 	var nnw Network
 
-	// NOTE(justin): First hacky workaround: Unmarshal into a slice of layers as opposed to a network to prevent an
-	// infinite recursion. If you try to unmarshal into a network, this same function will be indirectly called again.
+	// NOTE(justin): First hacky workaround: Unmarshal into a slice of layers as
+	// opposed to a network to prevent an infinite recursion. If you try to
+	// unmarshal into a network, this same function will be indirectly called
+	// again.
 	var layers []Layer
 	err := json.Unmarshal(data, &layers)
 	if err != nil {
 		return err
 	}
 
-	// NOTE(justin): Second hacky workaround: Because networks are slices, theres no fields on them to allow for
-	// pass-by-reference changes to persist to the caller. This is important because if a nil network, or just a network
-	// with lesser size than the json is encountered, we get an index out of bounds error when directly assigning to it:
-	//    nw[i] = layers[i] // Causes error if i >= len(nw) (indicating layers is larger than nw, which SHOULD be fine)
-	// And we can't just append to get around this, because those changes aren't persisted to the caller:
-	//   nw = append(nw, layers[i]) // Doesn't persist to caller
-	// So the only way to achieve a "safe" but sufficiently arbitrary unmarshalling process is to use a pointer receiver
-	// and append to what it points to (note that this process has been extracted into a new variable, nnw, and the
-	// pointer is overwritten at the end):
+	// NOTE(justin): Second hacky workaround: Because networks are slices,
+	// theres no fields on them to allow for pass-by-reference changes to
+	// persist to the caller. This is important because if a nil network, or
+	// just a network with lesser size than the json is encountered, we get an
+	// index out of bounds error when directly assigning to it:
+	//    nw[i] = layers[i] // Causes error if i >= len(nw) (indicating layers
+	//      is larger than nw, which SHOULD be fine)
+	// And we can't just append to get around this, because those changes aren't
+	// persisted to the caller:
+	//    nw = append(nw, layers[i]) // Doesn't persist to caller
+	// So the only way to achieve a "safe" but sufficiently arbitrary
+	// unmarshalling process is to use a pointer receiver and append to what it
+	// points to (note that this process has been extracted into a new variable,
+	// nnw, and the pointer is overwritten at the end):
 	for _, layer := range layers {
 		nnw = append(nnw, layer)
 	}
 
-	// NOTE(justin): Third hacky work around: This one is likely unavoidable. When storing a network as a json string,
-	// the json will get extremely redundant, and exponentially so as the number of layers increases, because neuron's
-	// connections are effectively a linked list. So if you look at the JSON you would see:
+	// NOTE(justin): Third hacky work around: This one is likely unavoidable.
+	// When storing a network as a json string, the json will get extremely
+	// redundant, and exponentially so as the number of layers increases,
+	// because neuron's connections are effectively a linked list. So if you
+	// look at the JSON you would see:
 	// - A neuron in layer 1 with no connections
-	// - A neuron in layer 2 with a connection pointing to the same neuron in layer 1 and all its details
-	// - A neuron in layer 3 with a connection pointing to the same neuron in layer 2 with all its details including the
-	//   connection that points to layer 1 with all its details
+	// - A neuron in layer 2 with a connection pointing to the same neuron in
+	//     layer 1 and all its details
+	// - A neuron in layer 3 with a connection pointing to the same neuron in
+	//     layer 2 with all its details including the connection that points to
+	//     layer 1 with all its details
 	// - etc.
-	// This is not desirable and to keep the JSON small the neuron portion of the connection is ignored via `json:"-"`.
-	// However when we unmarshal, we want to get this relationship back, so we need to hook everything back up which is
-	// done via Layer.ConnectNeurons here.
-	for li := len(nnw) - 1; li > 0; li-- { // For every layer starting from the last EXCEPT the first...
-		err := nnw[li].ConnectNeurons(nnw[li-1]) // Connect the neurons in this layer to the neurons in the previous layer
+	// This is not desirable and to keep the JSON small the neuron portion of
+	// the connection is ignored via `json:"-"`.
+	// However when we unmarshal, we want to get this relationship back, so we
+	// need to hook everything back up which is done via Layer.ConnectNeurons
+	// here.
+	//
+	// For every layer starting from the last EXCEPT the first...
+	for li := len(nnw) - 1; li > 0; li-- {
+		// Connect the neurons in this layer to the neurons in the previous
+		// layer
+		err := nnw[li].ConnectNeurons(nnw[li-1])
 		if err != nil {
 			return err
 		}
 	}
 
-	*nw = nnw // Overwrite the pointer with the updated network to persist the changes to the caller.
+	// Overwrite the pointer with the updated network to persist the changes to
+	// the caller.
+	*nw = nnw
 
 	return nil
 }
 
-// jsonNeuron is private struct for mapping all fields of a Neuron to exported fields so that they may be exposed in a
-// json body by the JSON marshaller.
+// jsonNeuron is private struct for mapping all fields of a Neuron to exported
+// fields so that they may be exposed in a json body by the JSON marshaller.
 type jsonNeuron struct {
 	Connections            []*Connection           `json:"connections"`
 	ActivationFunctionName activationfunction.Name `json:"activationFunctionName"`
@@ -177,8 +200,9 @@ func (n *Neuron) UnmarshalJSON(j []byte) error {
 	return nil
 }
 
-// jsonConnection is private struct for mapping all fields of a Connection to exported fields so that they may be
-// exposed in a json body by the JSON marshaller.
+// jsonConnection is private struct for mapping all fields of a Connection to
+// exported fields so that they may be exposed in a json body by the JSON
+// marshaller.
 type jsonConnection struct {
 	To             *Neuron   `json:"-"`
 	Weight         float64   `json:"weight"`

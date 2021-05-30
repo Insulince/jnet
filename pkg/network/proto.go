@@ -1,10 +1,11 @@
 package network
 
 import (
-	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
-	"github.com/Insulince/jnet/pkg/network/networkspb"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
+	activationfunction "github.com/Insulince/jnet/pkg/activation-function"
+	"github.com/Insulince/jnet/pkg/network/networkspb"
 )
 
 type (
@@ -38,6 +39,7 @@ func (pt protoTranslator) Serialize(nw Network) ([]byte, error) {
 	return bs, nil
 }
 
+// MustSerialize calls Serialize but panics if an error is encountered.
 func (pt protoTranslator) MustSerialize(nw Network) []byte {
 	bs, err := pt.Serialize(nw)
 	if err != nil {
@@ -66,6 +68,7 @@ func (pt protoTranslator) Deserialize(bs []byte) (Network, error) {
 	return nw, nil
 }
 
+// MustDeserialize calls Deserialize but panics if an error is encountered.
 func (pt protoTranslator) MustDeserialize(bs []byte) Network {
 	nw, err := pt.Deserialize(bs)
 	if err != nil {
@@ -77,7 +80,9 @@ func (pt protoTranslator) MustDeserialize(bs []byte) Network {
 func toProto(nw Network) *networkspb.Network {
 	pnw := &networkspb.Network{}
 
-	// NOTE: Implicitly assumes the entire network uses the same activation function AND that there exists a first layer AND there exists a first neuron.
+	// NOTE: Implicitly assumes the entire network uses the same activation
+	// function AND that there exists a first layer AND there exists a first
+	// neuron.
 	pnw.ActivationFunctionName = string(nw[0][0].ActivationFunctionName)
 
 	var pls []*networkspb.Layer
@@ -140,7 +145,8 @@ func fromProto(pnw *networkspb.Network) (Network, error) {
 		nw = append(nw, l)
 	}
 
-	// NOTE: Must reconnect all neurons in network using existing connections so that a linked list of neurons is successfully built.
+	// NOTE: Must reconnect all neurons in network using existing connections so
+	// that a linked list of neurons is successfully built.
 	if err := nw.ReconnectNeurons(); err != nil {
 		return nil, errors.Wrap(err, "reconnecting neurons")
 	}

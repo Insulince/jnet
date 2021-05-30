@@ -3,8 +3,10 @@ package network
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/Insulince/jnet/pkg/network/networkspb"
+
 	"github.com/pkg/errors"
+
+	"github.com/Insulince/jnet/pkg/network/networkspb"
 )
 
 func init() {
@@ -41,6 +43,7 @@ func (gt gobTranslator) Serialize(nw Network) ([]byte, error) {
 	return bs, nil
 }
 
+// MustSerialize calls Serialize but panics if an error is encountered.
 func (gt gobTranslator) MustSerialize(nw Network) []byte {
 	bs, err := gt.Serialize(nw)
 	if err != nil {
@@ -66,6 +69,7 @@ func (gt gobTranslator) Deserialize(bs []byte) (Network, error) {
 	return nw, nil
 }
 
+// MustDeserialize calls Deserialize but panics if an error is encountered.
 func (gt gobTranslator) MustDeserialize(bs []byte) Network {
 	nw, err := gt.Deserialize(bs)
 	if err != nil {
