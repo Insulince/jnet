@@ -11,7 +11,7 @@ import (
 	"github.com/Insulince/jnet/pkg/trainer"
 )
 
-var timeout = errors.New("timeout")
+var ErrTimeout = errors.New("timeout")
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -82,17 +82,15 @@ func Test_NetworkConverges(t *testing.T) {
 	go func() {
 		// This network should converge in well under a second.
 		time.Sleep(1 * time.Second)
-		exit <- timeout
+		exit <- ErrTimeout
 	}()
 
-	select {
-	case err := <-exit:
-		if err == timeout {
-			t.Fatal("network took to long to converge")
-			return
-		}
-		if err != nil {
-			t.Fatalf("something went wrong: %v", err)
-		}
+	err := <-exit
+	if err == ErrTimeout {
+		t.Fatal("network took to long to converge")
+		return
+	}
+	if err != nil {
+		t.Fatalf("something went wrong: %v", err)
 	}
 }
