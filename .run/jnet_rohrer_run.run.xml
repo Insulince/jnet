@@ -10,13 +10,14 @@
       <option name="IS_IGNORE_MISSING_FILES" value="false" />
       <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
       <ENTRIES>
-        <ENTRY IS_ENABLED="true" PARSER="runconfig" />
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </EXTENSION>
     <kind value="DIRECTORY" />
-    <filePath value="$PROJECT_DIR$" />
     <package value="github.com/Insulince/jnet" />
     <directory value="$PROJECT_DIR$/cmd/rohrer" />
+    <filePath value="$PROJECT_DIR$" />
+    <output_directory value="$PROJECT_DIR$/bin" />
     <method v="2" />
   </configuration>
 </component>

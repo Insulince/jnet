@@ -377,8 +377,8 @@ func (nw Network) ResetFromPass() {
 // in a mini batch.
 //
 // TODO(justin): I feel like RecordNudges should be part of or called in
-//  BackwardPass since its only ever used directly after calling that and
-//  wouldn't have much value to an end user.
+// BackwardPass since its only ever used directly after calling that and
+// wouldn't have much value to an end user.
 func (nw Network) RecordNudges() {
 	for li := range nw {
 		nw[li].recordNudges()
